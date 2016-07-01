@@ -66,5 +66,7 @@ public class GameCamToTexture : MonoBehaviour {
 
         dogTexture.Convolve(data, stride);
         working = false;
+        
     }
+
 }
