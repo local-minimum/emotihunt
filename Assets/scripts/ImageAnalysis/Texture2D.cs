@@ -54,4 +54,34 @@ namespace ImageAnalysis
 
     }
 
+    [System.Serializable]
+    public abstract class ConvolvableTexture
+    {
+        Texture2D texture;
+        protected Color[] target;
+
+        public ConvolvableTexture(Texture2D texture)
+        {
+            this.texture = texture;
+            target = new Color[texture.width * texture.height];
+        }
+
+        public Texture2D Texture
+        {
+            get
+            {
+                return texture;
+            }
+
+        }
+
+        abstract protected void _Convolve(Color[] data, int stride);
+
+        public void Convolve(Color[] data, int stride)
+        {
+            _Convolve(data, stride);
+            texture.SetPixels(target);
+            texture.Apply();
+        }
+    }
 }
