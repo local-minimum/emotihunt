@@ -36,10 +36,10 @@ namespace ImageAnalysis
             double g = 0;
             double b = 0;
 
-            for (int sourceX = 0, sourceOffset = 0, targetLength = target.Length, targetPos = 0; sourceOffset < targetLength; sourceX++)
+            for (int sourceY = 0, sourceOffset = 0, targetLength = target.Length, targetPos = 0, sourceLength = source.Length; sourceOffset < targetLength; sourceY++)
             {
 
-                for (int sourceY = 0; sourceY < targetStride; sourceY++, sourceOffset++, targetPos++)
+                for (int sourceX = 0; sourceX < targetStride; sourceX++, sourceOffset++, targetPos++)
                 {
                     r = 0;
                     b = 0;
@@ -51,6 +51,8 @@ namespace ImageAnalysis
                         {
 
                             samplePos = filtY * sourceWidth + filtX + sourceOffset;
+                            if (samplePos >= sourceLength)
+                                return;
                             r += source[samplePos].r * filter.Kernel[filtY, filtX];
                             g += source[samplePos].g * filter.Kernel[filtY, filtX];
                             b += source[samplePos].b * filter.Kernel[filtY, filtX];
@@ -106,6 +108,37 @@ namespace ImageAnalysis
             }
         }
 
+        public static void TensorMatrix(Color[] Ix, Color[] Iy, ref Color[,,] A)
+        {
+            for (int i=0, l=Ix.Length; i< l; i++)
+            {
+                A[i, 0, 0].r = Mathf.Pow(Ix[i].r, 2);
+                A[i, 0, 0].g = Mathf.Pow(Ix[i].g, 2);
+                A[i, 0, 0].b = Mathf.Pow(Ix[i].b, 2);
+
+                A[i, 1, 1].r = Mathf.Pow(Iy[i].r, 2);
+                A[i, 1, 1].g = Mathf.Pow(Iy[i].g, 2);
+                A[i, 1, 1].b = Mathf.Pow(Iy[i].b, 2);
+
+                A[i, 0, 1].r = A[i, 1, 0].r = Ix[i].r * Iy[i].r;
+                A[i, 0, 1].g = A[i, 1, 0].g = Ix[i].g * Iy[i].g;
+                A[i, 0, 1].b = A[i, 1, 0].b = Ix[i].b * Iy[i].b;
+
+            }
+        }
+
+        public static void Response(Color[,,] A, float kappa, ref Color[] R)
+        {
+            for (int i=0, l=R.Length; i< l; i++)
+            {
+                R[i].r = A[i, 0, 0].r * A[i, 1, 1].r - A[i, 0, 1].r * A[i, 1, 0].r - kappa * Mathf.Pow(A[i, 0, 0].r + A[i, 1, 1].r, 2);
+                R[i].g = A[i, 0, 0].g * A[i, 1, 1].g - A[i, 0, 1].g * A[i, 1, 0].g - kappa * Mathf.Pow(A[i, 0, 0].g + A[i, 1, 1].g, 2);
+                R[i].b = A[i, 0, 0].b * A[i, 1, 1].b - A[i, 0, 1].b * A[i, 1, 0].b - kappa * Mathf.Pow(A[i, 0, 0].b + A[i, 1, 1].b, 2);
+                R[i].a = 1;
+            }
+        }
+
+
         public static Color[] OriginalSize<T>(Color[] im, int toStride) where T : Filter
         {
             double[,] kernel = Filter.Get<T>().Kernel;
@@ -123,6 +156,52 @@ namespace ImageAnalysis
             return target;
         }
 
+        public static Color Max(Color[] I)
+        {
+            Color max = new Color(0, 0, 0);
+            for (int i=0, l=I.Length; i< l; i++)
+            {
+                if (I[i].r > max.r)
+                {
+                    max.r = I[i].r;
+                }
+                if (I[i].g > max.g)
+                {
+                    max.g = I[i].g;
+                }
+                if (I[i].b > max.b)
+                {
+                    max.b = I[i].b;
+                }
+            }
+            return max;
+        }
+
+        public static void Threshold(Color[] I, Color threshold, ref Color[] T)
+        {
+            float r = threshold.r;
+            float g = threshold.g;
+            float b = threshold.b;
+            for (int i = 0, l = I.Length; i < l; i++)
+            {
+                T[i].r = I[i].r > r ? 1 : 0;
+                T[i].g = I[i].g > g ? 1 : 0;
+                T[i].b = I[i].b > b ? 1 : 0;
+            }
+        }
+
+        public static void Threshold(ref Color[] I, Color threshold)
+        {
+            float r = threshold.r;
+            float g = threshold.g;
+            float b = threshold.b;
+            for (int i = 0, l = I.Length; i < l; i++)
+            {
+                I[i].r = I[i].r > r ? 1 : 0;
+                I[i].g = I[i].g > g ? 1 : 0;
+                I[i].b = I[i].b > b ? 1 : 0;
+            }
+        }
         public static void Resize(Color[] im, int fromStride, int fromHeight, int toStride, ref Color[] target)
         {
             for (int i = 0; i < fromHeight; i++)

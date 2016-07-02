@@ -11,9 +11,10 @@ public class GameCamToTexture : MonoBehaviour {
     [SerializeField]
     Image image2;
 
-    ImageAnalysis.Textures.DoGTexture dogTexture;
+    ImageAnalysis.Textures.HarrisCornerTexture cornerTexture;
     [SerializeField]
     Image image3;
+    [SerializeField, Range(0.04f, 0.15f)] float kappa;
 
     Texture2D camImage;
     bool working = false;
@@ -30,7 +31,7 @@ public class GameCamToTexture : MonoBehaviour {
         tex = new Texture2D(200, 100);
         Sprite sprite3 = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(tex.width / 2f, tex.height / 2f));
         image3.sprite = sprite3;
-        dogTexture = new ImageAnalysis.Textures.DoGTexture(tex);
+        cornerTexture = new ImageAnalysis.Textures.HarrisCornerTexture(tex, kappa);
 
         tex = new Texture2D(200, 100);
         sprite2 = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(tex.width / 2f, tex.height / 2f));
@@ -64,7 +65,7 @@ public class GameCamToTexture : MonoBehaviour {
 
         edgeTexture.Convolve(data, stride);
 
-        dogTexture.Convolve(data, stride);
+        cornerTexture.Convolve(data, stride);
         working = false;
         
     }
