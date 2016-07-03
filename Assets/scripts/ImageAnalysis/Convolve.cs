@@ -5,7 +5,7 @@ namespace ImageAnalysis
 {
     public static class Convolve
     {
-        public static Color[] Valid<T>(Color[] source, int sourceWidth) where T : Filter
+        public static double[,] Valid<T>(ref double[,] source, int sourceWidth) where T : Filter
         {
             T filter = Filter.Get<T>();
 
@@ -18,12 +18,12 @@ namespace ImageAnalysis
             int targetWidth = sourceWidth - filtWidth + 1;
             int targetHeight = sourceHeight - filtHeight + 1;
 
-            Color[] target = new Color[targetHeight * targetWidth];
-            Valid(source, sourceWidth, ref target, targetWidth, filter);
+            double[,] target = new double[targetHeight * targetWidth, source.GetLength(1)];
+            Valid(ref source, sourceWidth, ref target, targetWidth, filter);
             return target;
         }
 
-        public static void Valid(Color[] source, int sourceWidth, ref Color[] target, int targetStride, Filter filter)
+        public static void Valid(ref double[,] source, int sourceStride, ref double[,] target, int targetStride, Filter filter)
         {
 
             int samplePos = 0;
@@ -31,184 +31,208 @@ namespace ImageAnalysis
 
             int filtWidth = kernel.GetLength(1);
             int filtHeight = kernel.GetLength(0);
+            int sourceLength = source.GetLength(0);
+            int sourceHeight = sourceLength / sourceStride;
+            int targetLength = target.GetLength(0);
+            int targetHeight = targetLength / targetStride;
 
-            double r = 0;
-            double g = 0;
-            double b = 0;
-
-            for (int sourceY = 0, sourceOffset = 0, targetLength = target.Length, targetPos = 0, sourceLength = source.Length; sourceOffset < targetLength; sourceY++)
+            double v = 0.0;
+            for (int color = 0, colors = Mathf.Min(source.GetLength(1), target.GetLength(1)); color < colors; color++)
             {
 
-                for (int sourceX = 0; sourceX < targetStride; sourceX++, sourceOffset++, targetPos++)
+                for (int sourceY = 0, sourceOffset = 0, targetPos = 0; sourceY < sourceHeight - filtHeight + 1; sourceY++)
                 {
-                    r = 0;
-                    b = 0;
-                    g = 0;
 
-                    for (int filtY = 0; filtY < filtHeight; filtY++)
+                    for (int targetX = 0; targetX < targetStride; targetX++, sourceOffset++, targetPos++)
                     {
-                        for (int filtX = 0; filtX < filtWidth; filtX++)
-                        {
 
-                            samplePos = filtY * sourceWidth + filtX + sourceOffset;
-                            if (samplePos >= sourceLength)
-                                return;
-                            r += source[samplePos].r * filter.Kernel[filtY, filtX];
-                            g += source[samplePos].g * filter.Kernel[filtY, filtX];
-                            b += source[samplePos].b * filter.Kernel[filtY, filtX];
+                        v = 0.0;
+
+                        for (int filtY = 0; filtY < filtHeight; filtY++)
+                        {
+                            for (int filtX = 0; filtX < filtWidth; filtX++)
+                            {
+
+                                samplePos = filtY * sourceStride + filtX + sourceOffset;
+                                v += source[samplePos, color] * filter.Kernel[filtY, filtX];
+                            }
                         }
+
+                        target[targetPos, color] = (v * filter.Scale + filter.Bias);
                     }
 
-                    target[targetPos].r = Mathf.Clamp01((float)(r * filter.Scale + filter.Bias));
-                    target[targetPos].g = Mathf.Clamp01((float)(g * filter.Scale + filter.Bias));
-                    target[targetPos].b = Mathf.Clamp01((float)(b * filter.Scale + filter.Bias));
-                    target[targetPos].a = 1;
+                    sourceOffset += filtWidth - 1;
+                }
+            }
+        }
+
+        public static double[,] Add(ref double[,] a, ref double[,] b)
+        {
+            double[,] target = new double[a.GetLength(0), a.GetLength(1)];
+            Add(ref a, ref b, ref target);
+            return target;
+        }
+
+        public static void Add(ref double[,] a, ref double[,] b, ref double[,] target)
+        {
+            for (int color = 0, colors = Mathf.Min(a.GetLength(1), b.GetLength(1), target.GetLength(1)); color < colors; color++)
+            {
+                for (int i = 0, l = target.GetLength(0); i < l; i++)
+                {
+                    target[i, color] = a[i, color] + b[i, color];
+                }
+            }
+        }
+
+
+        public static double[,] Subtract(ref double[,] a, ref double[,] b)
+        {
+            double[,] target = new double[a.GetLength(0), a.GetLength(1)];
+
+            Subtract(ref a, ref b, ref target);
+            return target;
+        }
+
+        public static void Subtract(ref double[,] a, ref double[,] b, ref double[,] target)
+        {
+
+            for (int color = 0, colors = Mathf.Min(a.GetLength(1), b.GetLength(1), target.GetLength(1)); color < colors; color++)
+            {
+                for (int i = 0, l = target.GetLength(0); i < l; i++)
+                {
+                    target[i, color] = a[i, color] - b[i, color];
+                }
+            }
+        }
+
+        public static void TensorMatrix(ref double[,] Ix, ref double[,] Iy, ref double[,,,] A)
+        {
+            for (int color = 0, colors = Mathf.Min(Ix.GetLength(1), Iy.GetLength(1), A.GetLength(1)); color < colors; color++)
+            {
+                for (int i = 0, l = Ix.GetLength(0); i < l; i++)
+                {
+
+                    A[i, color, 0, 0] = System.Math.Pow(Ix[i, color], 2.0);
+                    A[i, color, 1, 1] = System.Math.Pow(Iy[i, color], 2.0);
+                    A[i, color, 0, 1] = A[i, color, 1, 0] = Ix[i, color] * Iy[i, color];
 
                 }
-
-                sourceOffset += filtWidth - 1;
             }
         }
 
-        public static Color[] Add(Color[] a, Color[] b)
+        public static void Response(ref double[,,,] A, double kappa, ref double[,] R)
         {
-            Color[] target = new Color[a.Length];
-            Add(a, b, ref target);
-            return target;
-        }
-
-        public static void Add(Color[] a, Color[] b, ref Color[] target)
-        {
-            for (int i = 0, l = target.Length; i < l; i++)
+            for (int color = 0, colors = Mathf.Min(A.GetLength(1), R.GetLength(1)); color < colors; color++)
             {
-                target[i].r = Mathf.Clamp01(a[i].r + b[i].r);
-                target[i].g = Mathf.Clamp01(a[i].g + b[i].g);
-                target[i].b = Mathf.Clamp01(a[i].b + b[i].b);
-                target[i].a = 1f;
+                for (int i = 0, l = Mathf.Min(R.GetLength(0), A.GetLength(0)); i < l; i++)
+                {
+                    R[i, color] = 
+                        A[i, color, 0, 0] * A[i, color, 1, 1] - A[i, color, 0, 1] * A[i, color, 1, 0] - 
+                        kappa * System.Math.Pow(A[i, color, 0, 0] + A[i, color, 1, 1], 2.0);
+                }
             }
         }
 
 
-        public static Color[] Subtract(Color[] a, Color[] b)
-        {
-            Color[] target = new Color[a.Length];
-
-            Subtract(a, b, ref target);
-            return target;
-        }
-
-        public static void Subtract(Color[] a, Color[] b, ref Color[] target)
-        {
-            for (int i = 0, l = target.Length; i < l; i++)
-            {
-                target[i].r = Mathf.Clamp01(a[i].r - b[i].r);
-                target[i].g = Mathf.Clamp01(a[i].g - b[i].g);
-                target[i].b = Mathf.Clamp01(a[i].b - b[i].b);
-                target[i].a = 1f;
-            }
-        }
-
-        public static void TensorMatrix(Color[] Ix, Color[] Iy, ref Color[,,] A)
-        {
-            for (int i=0, l=Ix.Length; i< l; i++)
-            {
-                A[i, 0, 0].r = Mathf.Pow(Ix[i].r, 2);
-                A[i, 0, 0].g = Mathf.Pow(Ix[i].g, 2);
-                A[i, 0, 0].b = Mathf.Pow(Ix[i].b, 2);
-
-                A[i, 1, 1].r = Mathf.Pow(Iy[i].r, 2);
-                A[i, 1, 1].g = Mathf.Pow(Iy[i].g, 2);
-                A[i, 1, 1].b = Mathf.Pow(Iy[i].b, 2);
-
-                A[i, 0, 1].r = A[i, 1, 0].r = Ix[i].r * Iy[i].r;
-                A[i, 0, 1].g = A[i, 1, 0].g = Ix[i].g * Iy[i].g;
-                A[i, 0, 1].b = A[i, 1, 0].b = Ix[i].b * Iy[i].b;
-
-            }
-        }
-
-        public static void Response(Color[,,] A, float kappa, ref Color[] R)
-        {
-            for (int i=0, l=R.Length; i< l; i++)
-            {
-                R[i].r = A[i, 0, 0].r * A[i, 1, 1].r - A[i, 0, 1].r * A[i, 1, 0].r - kappa * Mathf.Pow(A[i, 0, 0].r + A[i, 1, 1].r, 2);
-                R[i].g = A[i, 0, 0].g * A[i, 1, 1].g - A[i, 0, 1].g * A[i, 1, 0].g - kappa * Mathf.Pow(A[i, 0, 0].g + A[i, 1, 1].g, 2);
-                R[i].b = A[i, 0, 0].b * A[i, 1, 1].b - A[i, 0, 1].b * A[i, 1, 0].b - kappa * Mathf.Pow(A[i, 0, 0].b + A[i, 1, 1].b, 2);
-                R[i].a = 1;
-            }
-        }
-
-
-        public static Color[] OriginalSize<T>(Color[] im, int toStride) where T : Filter
+        public static Color[] OriginalSize<T>(ref double[,] im, int toStride) where T : Filter
         {
             double[,] kernel = Filter.Get<T>().Kernel;
             int kernelWidth = kernel.GetLength(1);
             int kernelHeight = kernel.GetLength(0);
             int height = im.Length / (toStride - kernelWidth + 1);
-            return Resize(im, toStride - kernelWidth + 1, toStride, height + kernelHeight - 1);
+            return Resize(ref im, toStride - kernelWidth + 1, toStride, height + kernelHeight - 1);
         }
 
-        public static Color[] Resize(Color[] im, int fromStride, int toStride, int toHeight)
+        public static Color[] Resize(ref double[,] im, int fromStride, int toStride, int toHeight)
         {
             int height = im.Length / fromStride;
             Color[] target = new Color[toStride * toHeight];
-            Resize(im, fromStride, height, toStride, ref target);
+            Convert(ref im, fromStride, height, toStride, ref target);
             return target;
         }
 
-        public static Color Max(Color[] I)
+        public static double[] Max(ref double[,] I)
         {
-            Color max = new Color(0, 0, 0);
-            for (int i=0, l=I.Length; i< l; i++)
+            int colors = I.GetLength(1);
+            double[] max = new double[colors];
+
+            for (int color = 0; color < colors; color++)
             {
-                if (I[i].r > max.r)
+                for (int i = 0, l = I.GetLength(0); i < l; i++)
                 {
-                    max.r = I[i].r;
-                }
-                if (I[i].g > max.g)
-                {
-                    max.g = I[i].g;
-                }
-                if (I[i].b > max.b)
-                {
-                    max.b = I[i].b;
+                    if (max[color] > I[i, color] || i ==0)
+                    {
+                        max[color] = I[i, color];
+                    }
                 }
             }
             return max;
         }
 
-        public static void Threshold(Color[] I, Color threshold, ref Color[] T)
+        public static void Threshold(ref double[,] I, ref double[] threshold, ref double[,] T)
         {
-            float r = threshold.r;
-            float g = threshold.g;
-            float b = threshold.b;
-            for (int i = 0, l = I.Length; i < l; i++)
+
+            for (int color = 0, colors = Mathf.Min(I.GetLength(1), T.GetLength(1), threshold.Length); color < colors; color++)
             {
-                T[i].r = I[i].r > r ? 1 : 0;
-                T[i].g = I[i].g > g ? 1 : 0;
-                T[i].b = I[i].b > b ? 1 : 0;
+                for (int i = 0, l = I.Length; i < l; i++)
+                {
+                    T[i, color] = I[i, color] > threshold[color] ? 1 : 0;
+                }
             }
         }
 
-        public static void Threshold(ref Color[] I, Color threshold)
+        public static void ThresholdInplace(ref double[,] I, double[] threshold)
         {
-            float r = threshold.r;
-            float g = threshold.g;
-            float b = threshold.b;
-            for (int i = 0, l = I.Length; i < l; i++)
+
+            for (int color = 0, colors = Mathf.Min(I.GetLength(1), threshold.Length); color < colors; color++)
             {
-                I[i].r = I[i].r > r ? 1 : 0;
-                I[i].g = I[i].g > g ? 1 : 0;
-                I[i].b = I[i].b > b ? 1 : 0;
+
+                for (int i = 0, l = I.GetLength(0); i < l; i++)
+                {
+                    I[i, color] = I[i, color] > threshold[color] ? 1 : 0;
+                }
             }
         }
-        public static void Resize(Color[] im, int fromStride, int fromHeight, int toStride, ref Color[] target)
+
+        public static void Convert(ref double[,] I, int fromStride, int fromHeight, int toStride, ref Color[] target)
         {
-            for (int i = 0; i < fromHeight; i++)
+            bool hasAlpha = I.GetLength(1) == 4;
+
+            for (int y = 0; y < fromHeight; y++)
             {
-                System.Array.Copy(im, i * fromStride, target, i * toStride, fromStride);
+                for (int x=0, sourcePos=y*fromStride, targetPos=y*toStride; x < fromStride && x < toStride; x++, sourcePos++, targetPos++)
+                {
+
+                    target[targetPos].r = (float)I[sourcePos, 0];
+                    target[targetPos].g = (float)I[sourcePos, 1];
+                    target[targetPos].b = (float)I[sourcePos, 2];
+                    if (hasAlpha)
+                    {
+                        target[targetPos].r = (float) I[sourcePos, 3];
+                    } else
+                    {
+                        target[targetPos].a = 1f;
+                    }
+                    
+                }
+
             }
 
+        }
+
+        public static void Color2Double(ref Color[] colors, ref double[,] I)
+        {
+            bool hasAlpha = I.GetLength(1) == 4;
+            for (int i=0, l=colors.Length; i< l; i++)
+            {
+                I[i, 0] = colors[i].r;
+                I[i, 1] = colors[i].g;
+                I[i, 2] = colors[i].b;
+                if (hasAlpha)
+                {
+                    I[i, 3] = colors[i].a;
+                }
+            }
         }
     }
 

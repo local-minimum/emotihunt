@@ -19,6 +19,8 @@ public class GameCamToTexture : MonoBehaviour {
     Texture2D camImage;
     bool working = false;
 
+    double[,] I;
+    Color[] data;
 
     // Use this for initialization
     void Start () {
@@ -52,20 +54,23 @@ public class GameCamToTexture : MonoBehaviour {
         working = true;
         yield return new WaitForEndOfFrame();
         if (camImage == null)
+        {
             camImage = new Texture2D(200, 100);
-
+            I = new double[200 * 100, 3];
+        }
 
         camImage.ReadPixels(new Rect(20, 150, 200, 100), 0, 0);
+        data = camImage.GetPixels();
+        ImageAnalysis.Convolve.Color2Double(ref data, ref I);
 
-        Color[] data = camImage.GetPixels();
         int stride = camImage.width;
 
         sprite2.texture.SetPixels(data);
         sprite2.texture.Apply();
 
-        edgeTexture.Convolve(data, stride);
+        edgeTexture.Convolve(I, stride);
 
-        cornerTexture.Convolve(data, stride);
+        cornerTexture.Convolve(I, stride);
         working = false;
         
     }

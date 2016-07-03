@@ -7,9 +7,9 @@ namespace ImageAnalysis.Textures
     {
         Filter sobelX = Filter.Get<Filters.SobelX>();
         Filter sobelY = Filter.Get<Filters.SobelY>();
-        Color[] xEdges;
-        Color[] yEdges;
-        Color[] edges;
+        double[,] xEdges;
+        double[,] yEdges;
+        double[,] edges;
         int edgeStride;
         int edgeHeight;
 
@@ -18,18 +18,18 @@ namespace ImageAnalysis.Textures
             edgeStride = texture.width - sobelX.Kernel.GetLength(1) + 1;
             edgeHeight = texture.height - sobelX.Kernel.GetLength(0) + 1;
             int edgeSizes = edgeHeight * edgeStride;
-            xEdges = new Color[edgeSizes];
-            yEdges = new Color[edgeSizes];
-            edges = new Color[edgeSizes];
+            xEdges = new double[edgeSizes, 3];
+            yEdges = new double[edgeSizes, 3];
+            edges = new double[edgeSizes, 3];
         }
 
-        protected override void _Convolve(Color[] data, int stride)
+        protected override void _Convolve(double[,] data, int stride)
         {
                         
-            ImageAnalysis.Convolve.Valid(data, stride, ref xEdges, edgeStride, sobelX);
-            ImageAnalysis.Convolve.Valid(data, stride, ref yEdges, edgeStride, sobelY);
-            ImageAnalysis.Convolve.Add(xEdges, yEdges, ref edges);
-            ImageAnalysis.Convolve.Resize(edges, edgeStride, edgeHeight, Texture.width, ref target);
+            ImageAnalysis.Convolve.Valid(ref data, stride, ref xEdges, edgeStride, sobelX);
+            ImageAnalysis.Convolve.Valid(ref data, stride, ref yEdges, edgeStride, sobelY);
+            ImageAnalysis.Convolve.Add(ref xEdges, ref yEdges, ref edges);
+            ImageAnalysis.Convolve.Convert(ref edges, edgeStride, edgeHeight, Texture.width, ref target);
 
         }
     }
