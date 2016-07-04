@@ -263,6 +263,55 @@ namespace ImageAnalysis
 
         }
 
+        public static void SubSample(ref Color[] source, int sourceStride, int sourceHeight, ref double[,] target, int targetStride, int targetHeight)
+        {
+            bool hasAlpha = target.GetLength(1) == 4;
+            int targetY = 0;
+            int targetX = 0;
+            int lastTargetY = -1;
+            int lastTargetX = -1;
+            float scaleY = targetHeight / (float) sourceHeight;
+            float scaleX = targetStride / (float)sourceStride;
+            int targetLength = target.GetLength(0);
+            int sourceLength = source.Length;
+
+            for (int sourceY=0; sourceY < sourceHeight; sourceY++)
+            {
+                targetY = Mathf.RoundToInt(scaleY * sourceY);
+                if (targetY == lastTargetX)
+                {
+                    continue;
+                }
+
+                for (int sourceX=0; sourceX < sourceStride; sourceX++)
+                {
+                    targetX = Mathf.RoundToInt(scaleX * sourceX);
+                    if (targetX == lastTargetX)
+                    {
+                        continue;
+                    }
+                    lastTargetX = targetX;
+
+                    int sourcePos = sourceY * sourceStride + sourceX;
+                    int targetPos = targetY * targetStride + sourceX;
+
+                    if (targetPos < targetLength && sourcePos < sourceLength)
+                    {
+                        target[targetPos, 0] = source[sourcePos].r;
+                        target[targetPos, 1] = source[sourcePos].g;
+                        target[targetPos, 2] = source[sourcePos].b;
+                        if (hasAlpha)
+                        {
+                            target[targetPos, 3] = source[sourcePos].a;
+                        }
+                    }
+
+                }
+
+                lastTargetY = targetY;
+            }
+        }
+
         public static void Color2Double(ref Color[] colors, ref double[,] I)
         {
             bool hasAlpha = I.GetLength(1) == 4;
@@ -276,6 +325,31 @@ namespace ImageAnalysis
                     I[i, 3] = colors[i].a;
                 }
             }
+        }
+
+        public static void WebCam2Double(WebCamTexture camTex, ref double[,] target, int targetStride)
+        {
+            if (!camTex.isPlaying)
+            {
+                camTex.Play();
+            }
+            int sourceHeight;
+            int sourceStride;
+            int targetHeight = target.GetLength(0) / targetStride;
+            float aspect = targetStride / (float) targetHeight;
+            if (camTex.width / (float)targetStride > camTex.height / (float)targetHeight)
+            {
+                sourceHeight = camTex.height;
+                sourceStride = Mathf.FloorToInt(aspect * sourceHeight);
+            }
+            else
+            {
+                sourceStride = camTex.width;
+                sourceHeight = Mathf.FloorToInt(sourceStride / aspect);
+
+            }
+            Color[] pixels = camTex.GetPixels(0, 0, sourceStride, sourceHeight);
+            SubSample(ref pixels, sourceStride, sourceHeight, ref target, targetStride, targetHeight);
         }
 
     }
