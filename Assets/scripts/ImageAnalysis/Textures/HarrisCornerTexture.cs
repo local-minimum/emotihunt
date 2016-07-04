@@ -9,17 +9,18 @@ namespace ImageAnalysis.Textures
         Filter sobelY = Filter.Get<Filters.SobelY>();
         Filter gauss3Filter = Filter.Get<Filters.Gaussian5x5S3>();
 
-        double[,] gauss3;
+        double[,] gaussX;
+        double[,] gaussY;
         double[,] edgeX;
         double[,] edgeY;
         double[,,,] A;
         double[,] response;
 
-        int gaussStride;
-        int gaussHeight;
+        int filt1stride;
+        int filt1height;
 
-        int sobelStride;
-        int sobelHeight;
+        int filt2stride;
+        int filt2height;
         double kappa = 0.1;
         double threshold = 0.7;
 
@@ -29,46 +30,47 @@ namespace ImageAnalysis.Textures
         public HarrisCornerTexture(Texture2D texture, float kappa) : base(texture)
         {
             Kappa = kappa;
-            gaussStride = texture.width - gauss3Filter.Kernel.GetLength(1) + 1;
-            gaussHeight = texture.height - gauss3Filter.Kernel.GetLength(0) + 1;
-            gauss3 = new double[gaussHeight * gaussStride, 3];
-
-            sobelStride = gaussStride - sobelX.Kernel.GetLength(1) + 1;
-            sobelHeight = gaussHeight - sobelX.Kernel.GetLength(0) + 1;
-
-            int edgeSizes = gaussHeight * gaussStride;
-            edgeX = new double[edgeSizes, 3];
-            edgeY = new double[edgeSizes, 3];
-            A = new double[edgeSizes, 3, 2, 2];
-            response = new double[edgeSizes, 3];
+            ConstructHelper(texture);
         }
 
 
         public HarrisCornerTexture(Texture2D texture) : base(texture)
         {
-            gaussStride = texture.width - gauss3Filter.Kernel.GetLength(1) + 1;
-            gaussHeight = texture.height - gauss3Filter.Kernel.GetLength(0) + 1;
-            gauss3 = new double[gaussHeight * gaussStride, 3];
+            ConstructHelper(texture);
+        }
 
-            sobelStride = gaussStride - sobelX.Kernel.GetLength(1) + 1;
-            sobelHeight = gaussHeight - sobelX.Kernel.GetLength(0) + 1;
+        void ConstructHelper(Texture2D texture) { 
+            filt1stride = texture.width - sobelX.Kernel.GetLength(1) + 1;
+            filt1height = texture.height - sobelX.Kernel.GetLength(0) + 1;
+            int filt1size = filt1height * filt1stride;
 
-            int edgeSizes = gaussHeight * gaussStride;
-            edgeX = new double[edgeSizes, 3];
-            edgeY = new double[edgeSizes, 3];
-            A = new double[edgeSizes, 3, 2, 2];
-            response = new double[edgeSizes, 3];
+            edgeX = new double[filt1size, 3];
+            edgeY = new double[filt1size, 3];
+
+
+            filt2stride = filt1stride - gauss3Filter.Kernel.GetLength(1) + 1;
+            filt2height = filt1height - gauss3Filter.Kernel.GetLength(0) + 1;
+
+            int filt2size = filt2height * filt2stride;
+            gaussX = new double[filt2size, 3];
+            gaussY = new double[filt2size, 3];
+
+            A = new double[filt2size, 3, 2, 2];
+            response = new double[filt2size, 3];
         }
 
         protected override void _Convolve(double[,] data, int stride)
         {
 
-            ImageAnalysis.Convolve.Valid(ref data, stride, ref gauss3, gaussStride, gauss3Filter);
+            ImageAnalysis.Convolve.Valid(ref data, stride, ref edgeX, filt1stride, sobelX);
+            ImageAnalysis.Convolve.Valid(ref data, stride, ref edgeY, filt1stride, sobelY);
 
-            ImageAnalysis.Convolve.Valid(ref gauss3, gaussStride, ref edgeX, sobelStride, sobelX);
-            ImageAnalysis.Convolve.Valid(ref gauss3, gaussStride, ref edgeY, sobelStride, sobelY);
-            ImageAnalysis.Convolve.TensorMatrix(ref edgeX, ref edgeY, ref A);
+            ImageAnalysis.Convolve.Valid(ref edgeX, filt1stride, ref gaussX, filt2stride, gauss3Filter);
+            ImageAnalysis.Convolve.Valid(ref edgeY, filt1stride, ref gaussY, filt2stride, gauss3Filter);
 
+            ImageAnalysis.Convolve.TensorMatrix(ref gaussX, ref gaussY, ref A);
+
+            /*
             int i = 400;
             int c = 1;
             Debug.Log("Ix " + edgeX[i, c]);
@@ -77,9 +79,10 @@ namespace ImageAnalysis.Textures
             Debug.Log("A0,1 " + A[i, c, 0, 1]);
             Debug.Log("A1,0 " + A[i, c, 1, 0]);
             Debug.Log("A1,1 " + A[i, c, 1, 1]);
-
+            */
             ImageAnalysis.Convolve.Response(ref A, kappa, ref response);
 
+            /*
             Debug.Log("R " + response[i, c] + " kappa " + kappa);
 
             double[] colorThresholds = ImageAnalysis.Convolve.Max(ref response);
@@ -88,11 +91,12 @@ namespace ImageAnalysis.Textures
                 colorThresholds[color] *= threshold;
             }
 
-            //Debug.Log(colorThresholds);
+            Debug.Log(colorThresholds);
 
-            //ImageAnalysis.Convolve.ThresholdInplace(ref response, colorThresholds);
+            ImageAnalysis.Convolve.ThresholdInplace(ref response, colorThresholds);
+            */
             ImageAnalysis.Convolve.ValueScale01(ref response);
-            ImageAnalysis.Convolve.Convert(ref response, sobelStride, gaussHeight, Texture.width, ref target);
+            ImageAnalysis.Convolve.Convert(ref response, filt2stride, filt2height, Texture.width, ref target);
 
         }
     }
