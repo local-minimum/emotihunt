@@ -15,6 +15,8 @@ public class GameCamToTexture : MonoBehaviour {
     [SerializeField]
     Image image3;
     [SerializeField, Range(0.04f, 0.15f)] float kappa;
+    [SerializeField, Range(0f, 1f)]
+    float threshold;
 
     Texture2D camImage;
     bool working = false;
@@ -46,6 +48,8 @@ public class GameCamToTexture : MonoBehaviour {
     {
         if (!working)
         {
+            cornerTexture.Kappa = kappa;
+            cornerTexture.Threshold = threshold;
             StartCoroutine(EdgeDraw());
         }
     }

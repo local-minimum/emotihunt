@@ -133,7 +133,6 @@ namespace ImageAnalysis
             }
         }
 
-
         public static Color[] OriginalSize<T>(ref double[,] im, int toStride) where T : Filter
         {
             double[,] kernel = Filter.Get<T>().Kernel;
@@ -169,6 +168,25 @@ namespace ImageAnalysis
             return max;
         }
 
+        public static double[] Min(ref double[,] I)
+        {
+            int colors = I.GetLength(1);
+            double[] min = new double[colors];
+
+            for (int color = 0; color < colors; color++)
+            {
+                for (int i = 0, l = I.GetLength(0); i < l; i++)
+                {
+                    if (min[color] < I[i, color] || i == 0)
+                    {
+                        min[color] = I[i, color];
+                    }
+                }
+            }
+            return min;
+
+        }
+
         public static void Threshold(ref double[,] I, ref double[] threshold, ref double[,] T)
         {
 
@@ -189,7 +207,32 @@ namespace ImageAnalysis
 
                 for (int i = 0, l = I.GetLength(0); i < l; i++)
                 {
-                    I[i, color] = I[i, color] > threshold[color] ? 1 : 0;
+                    I[i, color] = I[i, color] > threshold[color] ? 0 : 1;
+                }
+            }
+        }
+
+        public static void ValueScale01(ref double[,] I)
+        {
+            double[] min = Min(ref I);
+            double[] max = Max(ref I);
+            ValueScale01(ref I, min, max);
+        }
+
+        public static void ValueScale01(ref double[,] I, double[] min, double[] max)
+        {
+            double[] span = new double[Mathf.Min(min.Length, max.Length)];
+            for (int i=0; i<span.Length; i++)
+            {
+                span[i] = max[i] - min[i];
+            }
+
+            for (int color = 0, colors = Mathf.Min(I.GetLength(1), span.Length); color < colors; color++)
+            {
+
+                for (int i = 0, l = I.GetLength(0); i < l; i++)
+                {
+                    I[i, color] = (I[i, color] - min[color]) / span[color];
                 }
             }
         }
@@ -234,6 +277,7 @@ namespace ImageAnalysis
                 }
             }
         }
+
     }
 
 }

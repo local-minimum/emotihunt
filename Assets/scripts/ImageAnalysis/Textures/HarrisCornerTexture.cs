@@ -24,6 +24,7 @@ namespace ImageAnalysis.Textures
         double threshold = 0.7;
 
         public double Kappa { get { return kappa; } set { kappa = Mathf.Clamp((float) value, 0.04f, 0.15f);} }
+        public double Threshold { get { return threshold;} set { threshold = Mathf.Clamp01((float) value); } }
 
         public HarrisCornerTexture(Texture2D texture, float kappa) : base(texture)
         {
@@ -68,17 +69,18 @@ namespace ImageAnalysis.Textures
             ImageAnalysis.Convolve.Valid(ref gauss3, gaussStride, ref edgeY, sobelStride, sobelY);
             ImageAnalysis.Convolve.TensorMatrix(ref edgeX, ref edgeY, ref A);
 
-            //int i = 400;
-            //Debug.Log("Ix " + edgeX[i]);
-            //Debug.Log("Iy " + edgeY[i]);
-            //Debug.Log("A0,0 " + A[i, 0, 0]);
-            //Debug.Log("A0,1 " + A[i, 0, 1]);
-            //Debug.Log("A1,0 " + A[i, 1, 0]);
-            //Debug.Log("A1,1 " + A[i, 1, 1]);
+            int i = 400;
+            int c = 1;
+            Debug.Log("Ix " + edgeX[i, c]);
+            Debug.Log("Iy " + edgeY[i, c]);
+            Debug.Log("A0,0 " + A[i, c, 0, 0]);
+            Debug.Log("A0,1 " + A[i, c, 0, 1]);
+            Debug.Log("A1,0 " + A[i, c, 1, 0]);
+            Debug.Log("A1,1 " + A[i, c, 1, 1]);
 
             ImageAnalysis.Convolve.Response(ref A, kappa, ref response);
 
-            //Debug.Log("R " + response[200]);
+            Debug.Log("R " + response[i, c] + " kappa " + kappa);
 
             double[] colorThresholds = ImageAnalysis.Convolve.Max(ref response);
             for (int color=0; color<colorThresholds.Length; color++)
@@ -88,8 +90,8 @@ namespace ImageAnalysis.Textures
 
             //Debug.Log(colorThresholds);
 
-            ImageAnalysis.Convolve.ThresholdInplace(ref response, colorThresholds);
-
+            //ImageAnalysis.Convolve.ThresholdInplace(ref response, colorThresholds);
+            ImageAnalysis.Convolve.ValueScale01(ref response);
             ImageAnalysis.Convolve.Convert(ref response, sobelStride, gaussHeight, Texture.width, ref target);
 
         }
