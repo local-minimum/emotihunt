@@ -95,7 +95,7 @@ namespace ImageAnalysis.Textures
 
             ImageAnalysis.Convolve.ThresholdInplace(ref response, colorThresholds);
             */
-            ImageAnalysis.Convolve.ValueScale01(ref response);
+            ImageAnalysis.Math.ValueScaleUniform01(ref response);
             ImageAnalysis.Convolve.Convert(ref response, filt2stride, filt2height, Texture.width, ref target);
 
         }
