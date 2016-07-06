@@ -23,7 +23,7 @@ namespace ImageAnalysis.Textures
             edges = new double[edgeSizes, 3];
         }
 
-        protected override void _Convolve(double[,] data, int stride)
+        public override void Convolve(double[,] data, int stride)
         {
                         
             ImageAnalysis.Convolve.Valid(ref data, stride, ref xEdges, edgeStride, sobelX);

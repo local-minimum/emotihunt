@@ -46,7 +46,7 @@ public class WebCamToTexture : MonoBehaviour {
         working = true;
         yield return new WaitForEndOfFrame();
         ImageAnalysis.Convolve.WebCam2Double(camTex, ref I, size);
-        cornerTexture.Convolve(I, size);
+        cornerTexture.ConvolveAndApply(I, size);
         working = false;
 
     }

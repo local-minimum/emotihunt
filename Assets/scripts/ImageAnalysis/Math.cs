@@ -4,6 +4,18 @@ using System.Linq;
 
 namespace ImageAnalysis
 {
+    public struct Coordinate
+    {
+        public int x;
+        public int y;
+        public Coordinate(int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+
+    }
+
     public static class Math
     {
 
@@ -15,9 +27,9 @@ namespace ImageAnalysis
             {
                 WriteIndicesTo(ref args,
                     GetChannelAsEnumerable(I, color)
-                        .Select((x, i) => new KeyValuePair<int, double>(i, x))
-                        .OrderByDescending(x => x.Value)
-                        .Select(x => x.Key)
+                        .Select((v, i) => new { Value = v, Index = i })
+                        .OrderByDescending(n => n.Value)
+                        .Select(n => n.Index)
                         .ToArray(),
                     color);
             }
@@ -59,7 +71,7 @@ namespace ImageAnalysis
                 {
                     if (arr[n, color] * System.Math.Pow(aheadCost, taken[indx[n, 1]] - taken[color]) > arr[indx[n, 0], indx[n, 1]])
                     {
-                        indx[n, 0] = taken[color];
+                        indx[n, 0] = sortOrder[taken[color], color];
                         indx[n, 1] = color;
                     }
                 }
@@ -188,6 +200,11 @@ namespace ImageAnalysis
                     I[i, color] = (I[i, color] - min) / span;
                 }
             }
+        }
+
+        public static Coordinate ConvertCoordinate(int pos, int stride)
+        {
+            return new Coordinate(pos % stride, Mathf.FloorToInt(pos / stride));
         }
     }
 }

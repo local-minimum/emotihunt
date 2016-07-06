@@ -5,13 +5,13 @@ using ImageAnalysis;
 
 public class GameCamToTexture : MonoBehaviour {
 
-    ImageAnalysis.Textures.EdgeTexture edgeTexture;
+    ImageAnalysis.Textures.HarrisCornerTexture cornerTexture;
 
     Sprite sprite2;
     [SerializeField]
     Image image2;
 
-    ImageAnalysis.Textures.HarrisCornerTexture cornerTexture;
+    ImageAnalysis.Textures.HarrisCornerTexture overlayTexture;
     [SerializeField]
     Image image3;
     [SerializeField, Range(0.04f, 0.15f)] float kappa;
@@ -20,7 +20,8 @@ public class GameCamToTexture : MonoBehaviour {
 
     Texture2D camImage;
     bool working = false;
-
+    [SerializeField, Range(10, 42)] int nCorners = 24;
+    [SerializeField, Range(1, 4)] float aheadCost = 1.4f;
     double[,] I;
     Color[] data;
 
@@ -30,12 +31,12 @@ public class GameCamToTexture : MonoBehaviour {
         Texture2D tex = new Texture2D(200, 100);
         Sprite sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(tex.width / 2f, tex.height / 2f));
         img.sprite = sprite;
-        edgeTexture = new ImageAnalysis.Textures.EdgeTexture(tex);
+        cornerTexture = new ImageAnalysis.Textures.HarrisCornerTexture(tex);
 
         tex = new Texture2D(200, 100);
         Sprite sprite3 = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(tex.width / 2f, tex.height / 2f));
         image3.sprite = sprite3;
-        cornerTexture = new ImageAnalysis.Textures.HarrisCornerTexture(tex, kappa);
+        overlayTexture = new ImageAnalysis.Textures.HarrisCornerTexture(tex, kappa);
 
         tex = new Texture2D(200, 100);
         sprite2 = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(tex.width / 2f, tex.height / 2f));
@@ -48,8 +49,8 @@ public class GameCamToTexture : MonoBehaviour {
     {
         if (!working)
         {
-            cornerTexture.Kappa = kappa;
-            cornerTexture.Threshold = threshold;
+            overlayTexture.Kappa = kappa;
+            overlayTexture.Threshold = threshold;
             StartCoroutine(EdgeDraw());
         }
     }
@@ -65,16 +66,32 @@ public class GameCamToTexture : MonoBehaviour {
 
         camImage.ReadPixels(new Rect(20, 150, 200, 100), 0, 0);
         data = camImage.GetPixels();
-        ImageAnalysis.Convolve.Color2Double(ref data, ref I);
+        Convolve.Color2Double(ref data, ref I);
 
         int stride = camImage.width;
 
         sprite2.texture.SetPixels(data);
         sprite2.texture.Apply();
 
-        edgeTexture.Convolve(I, stride);
+        cornerTexture.ConvolveAndApply(I, stride);
+        double[,] response = cornerTexture.Response;
+        int responseStride = cornerTexture.ResponseStride;
 
-        cornerTexture.Convolve(I, stride);
+        int[,] sortOrder = Math.ArgSort(ref response);
+        int[,] corners = Math.FlexibleTake(ref response, ref sortOrder, nCorners, aheadCost);
+
+        overlayTexture.Texture.SetPixels(data);
+        for (int i=0; i<nCorners; i++)
+        {
+            /*if (i < 3)
+            {
+                Debug.Log(i + ": " + corners[i, 0] + ", color " + corners[i, 1]);
+            }*/
+            Blit.Cross(Math.ConvertCoordinate(corners[i, 0], responseStride), overlayTexture.Texture, corners[i, 1]);
+        }
+
+        overlayTexture.Texture.Apply();
+
         working = false;
         
     }

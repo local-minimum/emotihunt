@@ -23,9 +23,25 @@ namespace ImageAnalysis.Textures
         int filt2height;
         double kappa = 0.1;
         double threshold = 0.7;
-
+        
         public double Kappa { get { return kappa; } set { kappa = Mathf.Clamp((float) value, 0.04f, 0.15f);} }
         public double Threshold { get { return threshold;} set { threshold = Mathf.Clamp01((float) value); } }
+
+        public double[,] Response
+        {
+            get
+            {
+                return response;
+            }
+        }
+
+        public int ResponseStride
+        {
+            get
+            {
+                return filt2stride;
+            }
+        }
 
         public HarrisCornerTexture(Texture2D texture, float kappa) : base(texture)
         {
@@ -59,7 +75,7 @@ namespace ImageAnalysis.Textures
             response = new double[filt2size, 3];
         }
 
-        protected override void _Convolve(double[,] data, int stride)
+        public override void Convolve(double[,] data, int stride)
         {
 
             ImageAnalysis.Convolve.Valid(ref data, stride, ref edgeX, filt1stride, sobelX);
@@ -95,7 +111,7 @@ namespace ImageAnalysis.Textures
 
             ImageAnalysis.Convolve.ThresholdInplace(ref response, colorThresholds);
             */
-            ImageAnalysis.Math.ValueScaleUniform01(ref response);
+            Math.ValueScale01(ref response);
             ImageAnalysis.Convolve.Convert(ref response, filt2stride, filt2height, Texture.width, ref target);
 
         }

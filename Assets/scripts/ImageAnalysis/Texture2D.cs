@@ -86,11 +86,11 @@ namespace ImageAnalysis
 
         }
 
-        abstract protected void _Convolve(double[,] data, int stride);
+        abstract public void Convolve(double[,] data, int stride);
 
-        public void Convolve(double[,] data, int stride)
+        public void ConvolveAndApply(double[,] data, int stride)
         {
-            _Convolve(data, stride);
+            Convolve(data, stride);
             texture.SetPixels(target);
             texture.Apply();
         }
