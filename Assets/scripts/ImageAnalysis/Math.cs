@@ -64,7 +64,7 @@ namespace ImageAnalysis
             for (int n = 0; n < N; n++)
             {
                 //Guess it's first color
-                indx[n, 0] = taken[0];
+                indx[n, 0] = sortOrder[taken[0], 0];
                 indx[n, 1] = 0;
 
                 for (int color = 1; color < colors; color++)

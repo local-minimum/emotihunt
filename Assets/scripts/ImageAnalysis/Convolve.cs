@@ -33,8 +33,6 @@ namespace ImageAnalysis
             int filtHeight = kernel.GetLength(0);
             int sourceLength = source.GetLength(0);
             int sourceHeight = sourceLength / sourceStride;
-            int targetLength = target.GetLength(0);
-            int targetHeight = targetLength / targetStride;
 
             double v = 0.0;
             for (int color = 0, colors = Mathf.Min(source.GetLength(1), target.GetLength(1)); color < colors; color++)
@@ -216,7 +214,7 @@ namespace ImageAnalysis
             for (int sourceY=0; sourceY < sourceHeight; sourceY++)
             {
                 targetY = Mathf.RoundToInt(scaleY * sourceY);
-                if (targetY == lastTargetX)
+                if (targetY == lastTargetY)
                 {
                     continue;
                 }
