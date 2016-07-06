@@ -22,6 +22,7 @@ public class GameCamToTexture : MonoBehaviour {
     bool working = false;
     [SerializeField, Range(10, 42)] int nCorners = 24;
     [SerializeField, Range(1, 4)] float aheadCost = 1.4f;
+    [SerializeField, Range(0, 40)] int minDistance = 9;
     double[,] I;
     Color[] data;
 
@@ -78,7 +79,7 @@ public class GameCamToTexture : MonoBehaviour {
         int responseStride = cornerTexture.ResponseStride;
 
         int[,] sortOrder = Math.ArgSort(ref response);
-        int[,] corners = Math.FlexibleTake(ref response, ref sortOrder, nCorners, aheadCost);
+        int[,] corners = Math.FlexibleTake(ref response, ref sortOrder, nCorners, aheadCost, responseStride, minDistance);
 
         overlayTexture.Texture.SetPixels(data);
         for (int i=0; i<nCorners; i++)

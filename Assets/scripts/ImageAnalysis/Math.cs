@@ -80,6 +80,65 @@ namespace ImageAnalysis
             return indx;
         }
 
+        public static int[,] FlexibleTake(ref double[,] arr, ref int[,] sortOrder, int N, double aheadCost, int stride, int minDistance)
+        {
+
+            int size = sortOrder.GetLength(0);
+            int colors = sortOrder.GetLength(1);
+            int[,] indx = new int[N, 2];
+            int[] taken = new int[colors];
+            int n = 0;
+            while (n < N)
+            {
+                bool filled = false;
+                bool anyColor = false;
+                for (int color = 0; color < colors; color++)
+                {
+                    if (taken[color] >= size)
+                    {
+                        continue;
+                    }
+                    anyColor = true;
+                    if (!filled || arr[n, color] * System.Math.Pow(aheadCost, taken[indx[n, 1]] - taken[color]) > arr[indx[n, 0], indx[n, 1]])
+                    {
+                        if (passesDistanceCheck(sortOrder[taken[color], color], stride, minDistance, ref indx, n))
+                        {
+                            indx[n, 0] = sortOrder[taken[color], color];
+                            indx[n, 1] = color;
+                            filled = true;
+                        } else
+                        {
+                            //TODO: A bit unfair to tax the color for ahead costs but hey...
+                            taken[color]++;
+                        }
+                    }
+                }
+                if (filled)
+                {
+                    taken[indx[n, 1]]++;
+                    n++;
+                }
+                if (!anyColor)
+                {
+                    break;
+                }
+            }
+            return indx;
+        }
+
+
+        static bool passesDistanceCheck(int pos, int stride, int minDistance, ref int[,] taken, int currentIndex)
+        {
+            for (int i=0; i<currentIndex; i++)
+            {
+                if (Mathf.Abs(pos % stride - taken[i, 0] % stride) < minDistance ||  Mathf.Abs(pos / stride - taken[i, 0] / stride) < minDistance)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public static double[] Max(ref double[,] I)
         {
             int colors = I.GetLength(1);
