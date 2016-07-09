@@ -46,7 +46,7 @@ public class WebCamToTexture : MonoBehaviour {
         {
             camTex.Play();
         }
-        if (!working && !showingResults && camTex.didUpdateThisFrame)
+        if (!working && !showingResults)
             ShowCurrentImage();
 	}
 
@@ -96,11 +96,8 @@ public class WebCamToTexture : MonoBehaviour {
     {
         working = true;
         yield return new WaitForEndOfFrame();
-        if (camTex.isPlaying == false)
-        {
-            ImageAnalysis.Convolve.WebCam2Double(camTex, ref I, size);
-            cornerTexture.ConvolveAndApply(I, size);
-        }
+        ImageAnalysis.Convolve.WebCam2Double(camTex, ref I, size);
+        cornerTexture.ConvolveAndApply(I, size);
         showingResults = true;
         if (OnShowingResults != null)
         {
