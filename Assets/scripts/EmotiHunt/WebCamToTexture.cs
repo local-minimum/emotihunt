@@ -3,19 +3,31 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using ImageAnalysis.Textures;
 
+public delegate void ShowingResults(WebCamToTexture screen);
+
 public class WebCamToTexture : MonoBehaviour {
+
+    public event ShowingResults OnShowingResults;
 
     Image image;
     Texture2D tex;
 
     HarrisCornerTexture cornerTexture;
     bool working = false;
+    bool showingResults = false;
     WebCamTexture camTex;
     double[,] I;
-    [SerializeField, Range(100, 800)] int size = 400;    
+    [SerializeField, Range(100, 800)] int size = 400;
+    MobileUI mobileUI;
 
-	void Start () {
-        camTex = new WebCamTexture(size, size);
+    void Awake()
+    {
+        mobileUI = FindObjectOfType<MobileUI>();
+
+    }
+
+    void Start () {
+        camTex = new WebCamTexture();
 
         image = GetComponent<Image>();
         image.preserveAspect = true;
@@ -34,19 +46,67 @@ public class WebCamToTexture : MonoBehaviour {
         {
             camTex.Play();
         }
+        if (!working && !showingResults && camTex.didUpdateThisFrame)
+            ShowCurrentImage();
+	}
 
-        if (!working)
+    void OnEnable()
+    {
+        mobileUI.OnSnapImage += StartEdgeDetection;
+        mobileUI.OnCloseAction += HandleCloseEvent;
+    }
+
+
+    void OnDisable()
+    {
+        mobileUI.OnSnapImage -= StartEdgeDetection;
+        mobileUI.OnCloseAction -= HandleCloseEvent;
+    }
+
+    bool HandleCloseEvent()
+    {
+        if (showingResults)
         {
+            CloseResults();
+            return true;
+        }
+        return false;
+    }
+
+    void CloseResults()
+    {
+        //TODO: Some more clean up probably
+        showingResults = false;
+    }
+
+    void StartEdgeDetection()
+    {
+        if (!working) {
             StartCoroutine(EdgeDraw());
         }
-	}
+    }
+
+    IEnumerator<WaitForEndOfFrame> ShowCurrentImage()
+    {
+        yield return new WaitForEndOfFrame();
+        tex.SetPixels(camTex.GetPixels(0, 0, size, size));
+    }
 
     IEnumerator<WaitForEndOfFrame> EdgeDraw()
     {
         working = true;
         yield return new WaitForEndOfFrame();
-        ImageAnalysis.Convolve.WebCam2Double(camTex, ref I, size);
-        cornerTexture.ConvolveAndApply(I, size);
+        if (camTex.isPlaying == false)
+        {
+            ImageAnalysis.Convolve.WebCam2Double(camTex, ref I, size);
+            cornerTexture.ConvolveAndApply(I, size);
+        }
+        showingResults = true;
+        if (OnShowingResults != null)
+        {
+            OnShowingResults(this);
+        }
+
         working = false;
 
     }
