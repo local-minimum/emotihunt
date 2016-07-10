@@ -19,6 +19,7 @@ public class WebCamToTexture : MonoBehaviour {
     double[,] I;
     [SerializeField, Range(100, 800)] int size = 400;
     MobileUI mobileUI;
+    float zoom = 0;
 
     void Awake()
     {
@@ -54,6 +55,7 @@ public class WebCamToTexture : MonoBehaviour {
     {
         mobileUI.OnSnapImage += StartEdgeDetection;
         mobileUI.OnCloseAction += HandleCloseEvent;
+        mobileUI.OnZoom += HandleZoom;
     }
 
 
@@ -61,6 +63,12 @@ public class WebCamToTexture : MonoBehaviour {
     {
         mobileUI.OnSnapImage -= StartEdgeDetection;
         mobileUI.OnCloseAction -= HandleCloseEvent;
+        mobileUI.OnZoom -= HandleZoom;
+    }
+
+    void HandleZoom(float zoom)
+    {
+        this.zoom = zoom;
     }
 
     bool HandleCloseEvent()
@@ -100,7 +108,7 @@ public class WebCamToTexture : MonoBehaviour {
     {
         working = true;
         yield return new WaitForEndOfFrame();
-        ImageAnalysis.Convolve.WebCam2Double(camTex, ref I, size);
+        ImageAnalysis.Convolve.WebCam2Double(camTex, ref I, size, zoom);
         cornerTexture.ConvolveAndApply(I, size);
         showingResults = true;
         if (OnShowingResults != null)
