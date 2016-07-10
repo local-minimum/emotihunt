@@ -47,8 +47,8 @@ public class WebCamToTexture : MonoBehaviour {
         {
             camTex.Play();
         }
-        if (!working && !showingResults)
-            ShowCurrentImage();
+        if (!working && !showingResults && camTex.didUpdateThisFrame)
+            StartCoroutine(ShowCurrentImage());
 	}
 
     void OnEnable()
