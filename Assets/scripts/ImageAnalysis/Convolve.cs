@@ -231,6 +231,7 @@ namespace ImageAnalysis
             int sourceX = 0;
             float scaleY = (float) sourceHeight / targetHeight;
             float scaleX = (float) sourceStride / targetStride;
+            
             int targetLength = target.GetLength(0);
             int sourceLength = source.Length;
 
@@ -243,7 +244,7 @@ namespace ImageAnalysis
                     sourceX = Mathf.RoundToInt(targetX * scaleX);
 
                     int sourcePos = sourceY * sourceStride + sourceX;
-                    int targetPos = targetY * targetStride + sourceX;
+                    int targetPos = targetY * targetStride + targetX;
 
                     if (targetPos < targetLength && sourcePos < sourceLength)
                     {
@@ -311,7 +312,7 @@ namespace ImageAnalysis
         {            
             int sourceStride;
             int targetHeight = target.GetLength(0) / targetStride;
-            float aspect = targetStride / (float)targetHeight;
+            float aspect = (float) targetStride / targetHeight;
             if (sourceWidth / (float)targetStride > sourceHeight / (float)targetHeight)
             {
                 sourceStride = Mathf.FloorToInt(aspect * sourceHeight);
@@ -321,9 +322,8 @@ namespace ImageAnalysis
                 sourceStride = sourceWidth;
 
             }
-            sourceStride = Mathf.Max(sourceStride, Mathf.RoundToInt(targetStride + (sourceStride - targetStride) * digitalZoom));
-            sourceHeight = Mathf.FloorToInt(sourceStride / aspect);
-
+            sourceStride = Mathf.Max(targetStride, Mathf.RoundToInt(targetStride + (sourceStride - targetStride) * digitalZoom));
+            sourceHeight = Mathf.FloorToInt((float) sourceStride / aspect);            
             Color[] pixels = pixelFunc(0, 0, sourceStride, sourceHeight);
             SubSample(ref pixels, sourceStride, sourceHeight, ref target, targetStride, targetHeight);
 
