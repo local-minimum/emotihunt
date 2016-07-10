@@ -272,6 +272,14 @@ namespace ImageAnalysis
             }
         }
 
+        public static double[,] Texture2Double(Texture2D tex, bool useAlpha=false)
+        {
+            Color[] colors = tex.GetPixels();
+            double[,] I = new double[colors.Length, useAlpha ? 4 : 3];
+            Color2Double(ref colors, ref I);
+            return I;
+        }
+
         public static void Color2Double(ref Color[] colors, ref double[,] I)
         {
             bool hasAlpha = I.GetLength(1) == 4;
