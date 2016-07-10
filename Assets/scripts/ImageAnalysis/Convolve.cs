@@ -227,31 +227,20 @@ namespace ImageAnalysis
         public static void SubSample(ref Color[] source, int sourceStride, int sourceHeight, ref double[,] target, int targetStride, int targetHeight)
         {
             bool hasAlpha = target.GetLength(1) == 4;
-            int targetY = 0;
-            int targetX = 0;
-            int lastTargetY = -1;
-            int lastTargetX = -1;
-            float scaleY = targetHeight / (float) sourceHeight;
-            float scaleX = targetStride / (float)sourceStride;
+            int sourceY = 0;
+            int sourceX = 0;
+            float scaleY = (float) sourceHeight / targetHeight;
+            float scaleX = (float) sourceStride / targetStride;
             int targetLength = target.GetLength(0);
             int sourceLength = source.Length;
 
-            for (int sourceY=0; sourceY < sourceHeight; sourceY++)
+            for (int targetY=0; targetY < targetHeight; targetY++)
             {
-                targetY = Mathf.RoundToInt(scaleY * sourceY);
-                if (targetY == lastTargetY)
-                {
-                    continue;
-                }
+                sourceY = Mathf.RoundToInt(targetY * scaleY);
 
-                for (int sourceX=0; sourceX < sourceStride; sourceX++)
+                for (int targetX=0; targetX < targetHeight; targetX++)
                 {
-                    targetX = Mathf.RoundToInt(scaleX * sourceX);
-                    if (targetX == lastTargetX)
-                    {
-                        continue;
-                    }
-                    lastTargetX = targetX;
+                    sourceX = Mathf.RoundToInt(targetX * scaleX);
 
                     int sourcePos = sourceY * sourceStride + sourceX;
                     int targetPos = targetY * targetStride + sourceX;
@@ -269,7 +258,7 @@ namespace ImageAnalysis
 
                 }
 
-                lastTargetY = targetY;
+
             }
         }
 
