@@ -27,16 +27,21 @@ public class WebCamToTexture : MonoBehaviour {
 
     }
 
+    public static Texture2D SetupDynamicTexture(Image image, int size)
+    {
+        Texture2D tex = new Texture2D(size, size);
+        image.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), Vector2.one * 0.5f);
+        image.sprite.name = "Dynamic texture";
+        return tex;
+    }
+
     void Start () {
         camTex = new WebCamTexture();
 
         image = GetComponent<Image>();
         image.preserveAspect = true;
 
-        tex = new Texture2D(size, size);
-        image.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), Vector2.one * 0.5f);
-        image.sprite.name = "Dynamic texture";
-
+        tex = SetupDynamicTexture(image, size);
         cornerTexture = new HarrisCornerTexture(tex);
 
         I = new double[size * size, 3];

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 namespace ImageAnalysis
 {
@@ -296,29 +297,47 @@ namespace ImageAnalysis
         }
 
         public static void WebCam2Double(WebCamTexture camTex, ref double[,] target, int targetStride, float digitalZoom=0)
+        {            
+            ZoomCropConvert(
+                camTex.GetPixels,
+                camTex.width, 
+                camTex.height, 
+                ref target, 
+                targetStride, 
+                digitalZoom);
+        }
+
+        public static void Texture2Double(Texture2D source, ref double[,] target, int targetStride, float digitalZoom=0)
         {
-            if (!camTex.isPlaying)
-            {
-                camTex.Play();
-            }
-            int sourceHeight;
+            ZoomCropConvert(
+                source.GetPixels,
+                source.width,
+                source.height,
+                ref target,
+                targetStride,
+                digitalZoom);
+        }
+
+        public static void ZoomCropConvert(Func<int, int, int, int, Color[]> pixelFunc, int sourceWidth, int sourceHeight, ref double[,] target, int targetStride, float digitalZoom=0)
+        {            
             int sourceStride;
             int targetHeight = target.GetLength(0) / targetStride;
-            float aspect = targetStride / (float) targetHeight;
-            if (camTex.width / (float)targetStride > camTex.height / (float)targetHeight)
-            {                
-                sourceStride = Mathf.FloorToInt(aspect * camTex.height);
+            float aspect = targetStride / (float)targetHeight;
+            if (sourceWidth / (float)targetStride > sourceHeight / (float)targetHeight)
+            {
+                sourceStride = Mathf.FloorToInt(aspect * sourceHeight);
             }
             else
             {
-                sourceStride = camTex.width;
-                
+                sourceStride = sourceWidth;
+
             }
             sourceStride = Mathf.Max(sourceStride, Mathf.RoundToInt(targetStride + (sourceStride - targetStride) * digitalZoom));
             sourceHeight = Mathf.FloorToInt(sourceStride / aspect);
 
-            Color[] pixels = camTex.GetPixels(0, 0, sourceStride, sourceHeight);
+            Color[] pixels = pixelFunc(0, 0, sourceStride, sourceHeight);
             SubSample(ref pixels, sourceStride, sourceHeight, ref target, targetStride, targetHeight);
+
         }
 
     }
