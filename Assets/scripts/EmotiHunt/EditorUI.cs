@@ -77,7 +77,11 @@ public class EditorUI : MonoBehaviour {
         //TODO: Something more useful
         currentEmoji.secret = GetHashCode().ToString();
         currentEmoji.hash = CreateHash(currentEmoji.corners, currentEmoji.secret);
+       
+    }
 
+    public void SaveEmoji(Button button)
+    {
         SetEmoji(currentEmoji);
     }
 
