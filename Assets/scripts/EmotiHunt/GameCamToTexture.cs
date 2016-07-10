@@ -75,13 +75,12 @@ public class GameCamToTexture : MonoBehaviour {
         sprite2.texture.Apply();
 
         cornerTexture.ConvolveAndApply(I, stride);
-        double[,] response = cornerTexture.Response;
-        int responseStride = cornerTexture.ResponseStride;
 
-        int[,] sortOrder = Math.ArgSort(ref response);
-        int[,] corners = Math.FlexibleTake(ref response, ref sortOrder, nCorners, aheadCost, responseStride, minDistance);
 
         overlayTexture.Texture.SetPixels(data);
+        int[,] corners = overlayTexture.LocateCorners(nCorners, aheadCost, minDistance);
+        int responseStride = overlayTexture.ResponseStride;
+
         for (int i=0; i<nCorners; i++)
         {
             /*if (i < 3)

@@ -1,18 +1,25 @@
 ﻿using UnityEngine;
 using System;
 using ImageAnalysis;
+using System.Collections.Generic;
 
 [Serializable]
-public struct Emoji
+public class Emoji: ScriptableObject
 {
-    public string name;
+    public string emojiName;
     public string secret;    
-    public long hash;
+    public string hash;
 
     public Color[] pixels;
     public int pixelStride;
     public int height;
 
-    public Coordinate[] points;
+    public Coordinate[] corners;
 
+}
+
+[Serializable]
+public class EmojiDB: ScriptableObject
+{
+    public List<Emoji> emojis;
 }

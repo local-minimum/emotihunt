@@ -115,5 +115,13 @@ namespace ImageAnalysis.Textures
             ImageAnalysis.Convolve.Convert(ref response, filt2stride, filt2height, Texture.width, ref target);
 
         }
+
+        public int[,] LocateCorners(int nCorners, double aheadCost, int minDistance)
+        {
+
+            int[,] sortOrder = Math.ArgSort(ref response);
+            int[,] corners = Math.FlexibleTake(ref response, ref sortOrder, nCorners, aheadCost, filt2stride, minDistance);
+            return corners;
+        }
     }
 }

@@ -265,5 +265,16 @@ namespace ImageAnalysis
         {
             return new Coordinate(pos % stride, Mathf.FloorToInt(pos / stride));
         }
+
+        public static Coordinate[] ConvertCoordinate(int[,] pos, int stride)
+        {
+            int l = pos.GetLength(0);
+            Coordinate[] coords = new Coordinate[l];
+            for (int i=0;i< l;i++)
+            {
+                coords[i] = ConvertCoordinate(pos[i, 0], stride);
+            }
+            return coords;
+        }
     }
 }
