@@ -97,17 +97,16 @@ public class WebCamToTexture : MonoBehaviour {
     IEnumerator<WaitForEndOfFrame> ShowCurrentImage()
     {
         yield return new WaitForEndOfFrame();
-        tex.SetPixels(camTex.GetPixels(0, 0, size, size));
-        tex.Apply();
-
-        //TODO: Check if this is sufficient?
         transform.rotation = Quaternion.AngleAxis(camTex.videoRotationAngle, Vector3.up);
+        ImageAnalysis.Convolve.WebCam2Double(camTex, ref I, size, zoom);
+        ImageAnalysis.Convolve.Apply(ref I, size, tex);        
     }
 
     IEnumerator<WaitForEndOfFrame> EdgeDraw()
     {
         working = true;
         yield return new WaitForEndOfFrame();
+        transform.rotation = Quaternion.AngleAxis(camTex.videoRotationAngle, Vector3.up);
         ImageAnalysis.Convolve.WebCam2Double(camTex, ref I, size, zoom);
         cornerTexture.ConvolveAndApply(I, size);
         showingResults = true;

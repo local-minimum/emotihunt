@@ -199,6 +199,30 @@ namespace ImageAnalysis
 
         }
 
+        public static void Apply(ref double[,] I, int stride, Texture2D tex)
+        {
+            Color[] pixels = new Color[I.GetLength(0)];
+            bool hasAlpha = I.GetLength(1) == 4;
+            for (int i=0, l=pixels.Length; i< l; i++)
+            {
+                pixels[i].r = (float)I[i, 0];
+                pixels[i].g = (float)I[i, 1];
+                pixels[i].b = (float)I[i, 2];
+                if (hasAlpha)
+                {
+                    pixels[i].r = (float)I[i, 3];
+                }
+                else
+                {
+                    pixels[i].a = 1f;
+                }
+
+            }
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+        }
+
         public static void SubSample(ref Color[] source, int sourceStride, int sourceHeight, ref double[,] target, int targetStride, int targetHeight)
         {
             bool hasAlpha = target.GetLength(1) == 4;
