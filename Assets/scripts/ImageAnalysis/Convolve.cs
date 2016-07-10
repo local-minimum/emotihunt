@@ -263,7 +263,7 @@ namespace ImageAnalysis
             }
         }
 
-        public static void WebCam2Double(WebCamTexture camTex, ref double[,] target, int targetStride)
+        public static void WebCam2Double(WebCamTexture camTex, ref double[,] target, int targetStride, float digitalZoom=0)
         {
             if (!camTex.isPlaying)
             {
@@ -274,16 +274,17 @@ namespace ImageAnalysis
             int targetHeight = target.GetLength(0) / targetStride;
             float aspect = targetStride / (float) targetHeight;
             if (camTex.width / (float)targetStride > camTex.height / (float)targetHeight)
-            {
-                sourceHeight = camTex.height;
-                sourceStride = Mathf.FloorToInt(aspect * sourceHeight);
+            {                
+                sourceStride = Mathf.FloorToInt(aspect * camTex.height);
             }
             else
             {
                 sourceStride = camTex.width;
-                sourceHeight = Mathf.FloorToInt(sourceStride / aspect);
-
+                
             }
+            sourceStride = Mathf.Max(sourceStride, Mathf.RoundToInt(targetStride + (sourceStride - targetStride) * digitalZoom));
+            sourceHeight = Mathf.FloorToInt(sourceStride / aspect);
+
             Color[] pixels = camTex.GetPixels(0, 0, sourceStride, sourceHeight);
             SubSample(ref pixels, sourceStride, sourceHeight, ref target, targetStride, targetHeight);
         }

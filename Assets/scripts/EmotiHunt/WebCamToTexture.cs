@@ -90,6 +90,10 @@ public class WebCamToTexture : MonoBehaviour {
     {
         yield return new WaitForEndOfFrame();
         tex.SetPixels(camTex.GetPixels(0, 0, size, size));
+        tex.Apply();
+
+        //TODO: Check if this is sufficient?
+        transform.rotation = Quaternion.AngleAxis(camTex.videoRotationAngle, Vector3.up);
     }
 
     IEnumerator<WaitForEndOfFrame> EdgeDraw()
