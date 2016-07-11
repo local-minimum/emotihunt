@@ -323,9 +323,9 @@ namespace ImageAnalysis
 
             }
             sourceStride = Mathf.Max(targetStride, Mathf.RoundToInt(targetStride + (sourceStride - targetStride) * digitalZoom));
-            sourceHeight = Mathf.FloorToInt((float) sourceStride / aspect);            
-            Color[] pixels = pixelFunc(0, 0, sourceStride, sourceHeight);
-            SubSample(ref pixels, sourceStride, sourceHeight, ref target, targetStride, targetHeight);
+            int sourceRecalcHeight = Mathf.FloorToInt((float) sourceStride / aspect);            
+            Color[] pixels = pixelFunc((sourceWidth - sourceStride)/2, (sourceHeight - sourceRecalcHeight)/2, sourceStride, sourceRecalcHeight);
+            SubSample(ref pixels, sourceStride, sourceRecalcHeight, ref target, targetStride, targetHeight);
 
         }
 
