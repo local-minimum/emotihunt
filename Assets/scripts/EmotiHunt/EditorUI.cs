@@ -2,8 +2,11 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using ImageAnalysis.Textures;
-using UnityEditor;
 using System.Linq;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class EditorUI : MonoBehaviour {
 
@@ -101,6 +104,7 @@ public class EditorUI : MonoBehaviour {
     {
         int i = 0;
         Dictionary<string, Emoji> db = new Dictionary<string, Emoji>();
+#if UNITY_EDITOR
         EmojiDB emojiDB = AssetDatabase.LoadAssetAtPath<EmojiDB>(dbLocation);
         foreach (Emoji emoji in emojiDB.emojis)
         {
@@ -111,26 +115,30 @@ public class EditorUI : MonoBehaviour {
             }
         }
         Debug.Log("Loaded Emoji DB, length = " + i);
+#endif
         return db;
     }
 
     static void CreateEmojiDb()
-    {        
+    {
+#if UNITY_EDITOR       
         EmojiDB baseObj = ScriptableObject.CreateInstance<EmojiDB>();
         baseObj.name = "Emoji DB";
         AssetDatabase.CreateAsset(baseObj, dbLocation);
+#endif
     }
     
 
 
     static void SaveEmojiDB(Dictionary<string, Emoji> db)
     {
-
+#if UNITY_EDITOR
         EmojiDB emojiDB = AssetDatabase.LoadAssetAtPath<EmojiDB>(dbLocation);
         emojiDB.emojis = db.Values.ToList();
 
         //TODO: All confused about scriptable objects saving
         AssetDatabase.SaveAssets();
+#endif
     }
 
     HarrisCornerTexture GetCornerTexture(Texture2D source)
