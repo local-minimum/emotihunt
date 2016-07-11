@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace ImageAnalysis
 {
+    [Serializable]
     public struct Coordinate
     {
         public int x;
@@ -275,6 +277,19 @@ namespace ImageAnalysis
                 coords[i] = ConvertCoordinate(pos[i, 0], stride);
             }
             return coords;
+        }
+
+        public static Vector2 CoordinateToRelativeVector2(Coordinate coord, Texture2D tex)
+        {
+            return new Vector2((float)coord.x / tex.width, (float)coord.y / tex.height);
+        }
+
+        public static Vector3 RelativeVector2ToWorld(Vector2 v, RectTransform imageT, RectTransform canvasT)
+        {
+            Vector2 canvasPos = imageT.TransformPoint(v - imageT.pivot);
+            Debug.Log(canvasPos);
+            Debug.Log(canvasT.rect.size);
+            return new Vector3(canvasPos.x, canvasPos.y);
         }
     }
 }
