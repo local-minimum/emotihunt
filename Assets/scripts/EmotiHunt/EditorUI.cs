@@ -10,7 +10,10 @@ using UnityEditor;
 
 public class EditorUI : MonoBehaviour {
 
+#if UNITY_EDITOR
     static string dbLocation = "Assets/data/emoji.db";
+#endif
+
     string emojiName = "";
 
     [SerializeField]
@@ -102,9 +105,10 @@ public class EditorUI : MonoBehaviour {
 
     static Dictionary<string, Emoji> LoadEmojiDB()
     {
-        int i = 0;
         Dictionary<string, Emoji> db = new Dictionary<string, Emoji>();
 #if UNITY_EDITOR
+        int i = 0;
+
         EmojiDB emojiDB = AssetDatabase.LoadAssetAtPath<EmojiDB>(dbLocation);
         foreach (Emoji emoji in emojiDB.emojis)
         {
