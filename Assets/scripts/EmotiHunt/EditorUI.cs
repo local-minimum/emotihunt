@@ -3,16 +3,32 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using ImageAnalysis.Textures;
 using System.Linq;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Reflection;
+using System;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+public sealed class VersionDeserializationBinder : SerializationBinder
+{
+    public override Type BindToType(string assemblyName, string typeName)
+    {
+        if (!string.IsNullOrEmpty(assemblyName) && !string.IsNullOrEmpty(typeName))
+        {
+            Type typeToDeserialze = null;
+
+            assemblyName = Assembly.GetExecutingAssembly().FullName;
+            typeToDeserialze = Type.GetType(string.Format("{0}, {1}", typeName, assemblyName));
+            return typeToDeserialze;
+        }
+        return null;
+    }
+}
 
 public class EditorUI : MonoBehaviour {
 
-#if UNITY_EDITOR
     static string dbLocation = "Assets/data/emoji.db";
-#endif
+
 
     string emojiName = "";
 
@@ -67,13 +83,13 @@ public class EditorUI : MonoBehaviour {
         double[,] I = ImageAnalysis.Convolve.Texture2Double(tex);
         harrisCorner.ConvolveAndApply(I, tex.width);
         int[,] corners = harrisCorner.LocateCorners(nCorners, aheadCost, minDistance);
-        SetEmojiData(ImageAnalysis.Math.ConvertCoordinate(corners, harrisCorner.ResponseStride), tex.GetPixels(), tex.width);
+        SetEmojiData(ImageAnalysis.Math.ConvertCoordinate(corners, harrisCorner.ResponseStride), I, tex.width);
         button.interactable = true;
     }
 
-    void SetEmojiData(ImageAnalysis.Coordinate[] corners, Color[] pixels, int stride)
+    void SetEmojiData(ImageAnalysis.Coordinate[] corners, double[,] pixels, int stride)
     {
-        currentEmoji = ScriptableObject.CreateInstance<Emoji>();
+        currentEmoji = new Emoji();
         currentEmoji.emojiName = emojiName;
         currentEmoji.corners = corners;
         currentEmoji.pixels = pixels;
@@ -98,51 +114,58 @@ public class EditorUI : MonoBehaviour {
 
     static void SetEmoji(Emoji emoji)
     {
-        Dictionary<string, Emoji> db = LoadEmojiDB();
-        db[emoji.emojiName] = emoji;
+        EmojiDB db = LoadEmojiDB();
+        db.Set(emoji);
         SaveEmojiDB(db);
     }
 
-    static Dictionary<string, Emoji> LoadEmojiDB()
+    static EmojiDB LoadEmojiDB()
     {
-        Dictionary<string, Emoji> db = new Dictionary<string, Emoji>();
-#if UNITY_EDITOR
-        int i = 0;
+        try {
+            Stream stream = File.Open(dbLocation, FileMode.Open);
+            BinaryFormatter bformatter = new BinaryFormatter();
+            bformatter.Binder = new VersionDeserializationBinder();
 
-        EmojiDB emojiDB = AssetDatabase.LoadAssetAtPath<EmojiDB>(dbLocation);
-        foreach (Emoji emoji in emojiDB.emojis)
-        {
-            if (emoji != null)
+            /*try
+            {*/
+                EmojiDB emojiDB = (EmojiDB)bformatter.Deserialize(stream);
+                stream.Close();
+                return emojiDB;
+
+            /*}
+            catch (SerializationException)
             {
-                db[emoji.emojiName] = emoji;
-                i++;
-            }
+                Debug.LogError("Previous emoji database not deserializable or empty");
+                stream.Close();
+                return CreateEmojiDb();
+            }*/
+        } catch (FileNotFoundException)
+        {
+            return CreateEmojiDb();
         }
-        Debug.Log("Loaded Emoji DB, length = " + i);
-#endif
-        return db;
     }
 
-    static void CreateEmojiDb()
+    static EmojiDB CreateEmojiDb()
     {
-#if UNITY_EDITOR       
-        EmojiDB baseObj = ScriptableObject.CreateInstance<EmojiDB>();
-        baseObj.name = "Emoji DB";
-        AssetDatabase.CreateAsset(baseObj, dbLocation);
-#endif
+        EmojiDB db = new EmojiDB();          
+        return db;
     }
     
 
-
     static void SaveEmojiDB(Dictionary<string, Emoji> db)
     {
-#if UNITY_EDITOR
-        EmojiDB emojiDB = AssetDatabase.LoadAssetAtPath<EmojiDB>(dbLocation);
-        emojiDB.emojis = db.Values.ToList();
+        var emojiDB = LoadEmojiDB();
+        emojiDB.DB = db;
+        SaveEmojiDB(emojiDB);
+    }
 
-        //TODO: All confused about scriptable objects saving
-        AssetDatabase.SaveAssets();
-#endif
+    static void SaveEmojiDB(EmojiDB db)
+    {
+        Stream stream = File.Open(dbLocation, FileMode.Create);
+        BinaryFormatter bformatter = new BinaryFormatter();
+        bformatter.Binder = new VersionDeserializationBinder();
+        bformatter.Serialize(stream, db);
+        stream.Close();
     }
 
     HarrisCornerTexture GetCornerTexture(Texture2D source)
@@ -160,5 +183,11 @@ public class EditorUI : MonoBehaviour {
     public void Load(Button button)
     {
         img.sprite = null;
-    }    
+    }  
+    
+    public void Start()
+    {
+        string names = LoadEmojiDB().Names;
+        Debug.Log(string.IsNullOrEmpty(names) ? "Empty DB" : names);
+    }  
 }
