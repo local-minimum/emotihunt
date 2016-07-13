@@ -178,20 +178,39 @@ namespace ImageAnalysis
         {
             bool hasAlpha = I.GetLength(1) == 4;
 
-            for (int y = 0; y < fromHeight; y++)
+            int toHeight = target.Length / toStride;
+
+            int fromXMin = Mathf.Max(0, (toStride - fromStride) / 2);
+            int fromXMax = fromXMin + fromStride - 1;
+            int fromYMin = Mathf.Max(0, (toHeight - fromHeight) / 2);
+            int fromYMax = fromYMin + fromHeight - 1;
+
+            int targetPos = 0;
+            for (int y = 0; y < toHeight; y++)
             {
-                for (int x=0, sourcePos=y*fromStride, targetPos=y*toStride; x < fromStride && x < toStride; x++, sourcePos++, targetPos++)
+                for (int x=0; x<toStride; x++, targetPos++)
                 {
 
-                    target[targetPos].r = (float)I[sourcePos, 0];
-                    target[targetPos].g = (float)I[sourcePos, 1];
-                    target[targetPos].b = (float)I[sourcePos, 2];
-                    if (hasAlpha)
+                    if (y < fromYMin || y > fromYMax || x < fromXMin || x > fromYMax)
                     {
-                        target[targetPos].r = (float) I[sourcePos, 3];
-                    } else
-                    {
-                        target[targetPos].a = 1f;
+                        target[targetPos].r = 0.5f;
+                        target[targetPos].g = 0.5f;
+                        target[targetPos].b = 0.5f;
+                        target[targetPos].a = 0;
+                    }
+                    else {
+                        int sourcePos = (x - fromXMin) + (y - fromYMin) * fromStride;
+                        target[targetPos].r = (float)I[sourcePos, 0];
+                        target[targetPos].g = (float)I[sourcePos, 1];
+                        target[targetPos].b = (float)I[sourcePos, 2];
+                        if (hasAlpha)
+                        {
+                            target[targetPos].a = (float)I[sourcePos, 3];
+                        }
+                        else
+                        {
+                            target[targetPos].a = 1f;
+                        }
                     }
                     
                 }
