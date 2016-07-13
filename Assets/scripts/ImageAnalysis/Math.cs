@@ -263,18 +263,18 @@ namespace ImageAnalysis
             }
         }
 
-        public static Coordinate ConvertCoordinate(int pos, int stride)
+        public static Coordinate ConvertCoordinate(int pos, int stride, int offset=0)
         {
-            return new Coordinate(pos % stride, Mathf.FloorToInt(pos / stride));
+            return new Coordinate(pos % stride + offset, Mathf.FloorToInt(pos / stride) + offset);
         }
 
-        public static Coordinate[] ConvertCoordinate(int[,] pos, int stride)
+        public static Coordinate[] ConvertCoordinate(int[,] pos, int stride, int offset=0)
         {
             int l = pos.GetLength(0);
             Coordinate[] coords = new Coordinate[l];
             for (int i=0;i< l;i++)
             {
-                coords[i] = ConvertCoordinate(pos[i, 0], stride);
+                coords[i] = ConvertCoordinate(pos[i, 0], stride, offset);
             }
             return coords;
         }

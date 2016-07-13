@@ -20,9 +20,11 @@ public class GameCamToTexture : MonoBehaviour {
 
     Texture2D camImage;
     bool working = false;
+
     [SerializeField, Range(10, 42)] int nCorners = 24;
     [SerializeField, Range(1, 4)] float aheadCost = 1.4f;
     [SerializeField, Range(0, 40)] int minDistance = 9;
+
     double[,] I;
     Color[] data;
 

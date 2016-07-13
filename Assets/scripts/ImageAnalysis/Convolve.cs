@@ -191,7 +191,7 @@ namespace ImageAnalysis
                 for (int x=0; x<toStride; x++, targetPos++)
                 {
 
-                    if (y < fromYMin || y > fromYMax || x < fromXMin || x > fromYMax)
+                    if (y < fromYMin || y > fromYMax || x < fromXMin || x > fromXMax)
                     {
                         target[targetPos].r = 0.5f;
                         target[targetPos].g = 0.5f;

@@ -94,5 +94,11 @@ namespace ImageAnalysis
             texture.SetPixels(target);
             texture.Apply();
         }
+
+        public void ApplyTargetToTexture(Texture2D tex)
+        {
+            tex.SetPixels(target);
+            tex.Apply();
+        }
     }
 }

@@ -2,38 +2,14 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using ImageAnalysis.Textures;
+using System;
 
-public delegate void ShowingResults(WebCamToTexture screen);
-
-public class WebCamToTexture : MonoBehaviour {
-
-    public event ShowingResults OnShowingResults;
+public class WebCamToTexture : Detector {
 
     Image image;
     Texture2D tex;
 
-    HarrisCornerTexture cornerTexture;
-    bool working = false;
-    bool showingResults = false;
     WebCamTexture camTex;
-    double[,] I;
-    [SerializeField, Range(100, 800)] int size = 400;
-    MobileUI mobileUI;
-    float zoom = 0;
-
-    void Awake()
-    {
-        mobileUI = FindObjectOfType<MobileUI>();
-
-    }
-
-    public static Texture2D SetupDynamicTexture(Image image, int size)
-    {
-        Texture2D tex = new Texture2D(size, size);
-        image.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), Vector2.one * 0.5f);
-        image.sprite.name = "Dynamic texture";
-        return tex;
-    }
 
     void Start () {
         camTex = new WebCamTexture();
@@ -43,8 +19,6 @@ public class WebCamToTexture : MonoBehaviour {
 
         tex = SetupDynamicTexture(image, size);
         cornerTexture = new HarrisCornerTexture(tex);
-
-        I = new double[size * size, 3];
 	}
 	
 	void Update () {
@@ -56,48 +30,6 @@ public class WebCamToTexture : MonoBehaviour {
             StartCoroutine(ShowCurrentImage());
 	}
 
-    void OnEnable()
-    {
-        mobileUI.OnSnapImage += StartEdgeDetection;
-        mobileUI.OnCloseAction += HandleCloseEvent;
-        mobileUI.OnZoom += HandleZoom;
-    }
-
-
-    void OnDisable()
-    {
-        mobileUI.OnSnapImage -= StartEdgeDetection;
-        mobileUI.OnCloseAction -= HandleCloseEvent;
-        mobileUI.OnZoom -= HandleZoom;
-    }
-
-    void HandleZoom(float zoom)
-    {
-        this.zoom = zoom;
-    }
-
-    bool HandleCloseEvent()
-    {
-        if (showingResults)
-        {
-            CloseResults();
-            return true;
-        }
-        return false;
-    }
-
-    void CloseResults()
-    {
-        //TODO: Some more clean up probably
-        showingResults = false;
-    }
-
-    void StartEdgeDetection()
-    {
-        if (!working) {
-            StartCoroutine(EdgeDraw());
-        }
-    }
 
     IEnumerator<WaitForEndOfFrame> ShowCurrentImage()
     {
@@ -107,20 +39,16 @@ public class WebCamToTexture : MonoBehaviour {
         ImageAnalysis.Convolve.Apply(ref I, size, tex);        
     }
 
-    IEnumerator<WaitForEndOfFrame> EdgeDraw()
+    protected override void _EdgeDrawCalculation()
     {
-        working = true;
-        yield return new WaitForEndOfFrame();
         transform.rotation = Quaternion.AngleAxis(camTex.videoRotationAngle, Vector3.forward * -1);
         ImageAnalysis.Convolve.WebCam2Double(camTex, ref I, size, zoom);
-        cornerTexture.ConvolveAndApply(I, size);
-        showingResults = true;
-        if (OnShowingResults != null)
-        {
-            OnShowingResults(this);
-        }
-
-        working = false;
 
     }
+
+    protected override void _PostDetection()
+    {
+        cornerTexture.ApplyTargetToTexture(tex);
+    }
+
 }

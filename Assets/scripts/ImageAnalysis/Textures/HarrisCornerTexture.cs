@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-
+using System.Collections.Generic;
 
 namespace ImageAnalysis.Textures
 {
@@ -86,31 +86,8 @@ namespace ImageAnalysis.Textures
 
             ImageAnalysis.Convolve.TensorMatrix(ref gaussX, ref gaussY, ref A);
 
-            /*
-            int i = 400;
-            int c = 1;
-            Debug.Log("Ix " + edgeX[i, c]);
-            Debug.Log("Iy " + edgeY[i, c]);
-            Debug.Log("A0,0 " + A[i, c, 0, 0]);
-            Debug.Log("A0,1 " + A[i, c, 0, 1]);
-            Debug.Log("A1,0 " + A[i, c, 1, 0]);
-            Debug.Log("A1,1 " + A[i, c, 1, 1]);
-            */
             ImageAnalysis.Convolve.Response(ref A, kappa, ref response);
 
-            /*
-            Debug.Log("R " + response[i, c] + " kappa " + kappa);
-
-            double[] colorThresholds = ImageAnalysis.Convolve.Max(ref response);
-            for (int color=0; color<colorThresholds.Length; color++)
-            {
-                colorThresholds[color] *= threshold;
-            }
-
-            Debug.Log(colorThresholds);
-
-            ImageAnalysis.Convolve.ThresholdInplace(ref response, colorThresholds);
-            */
             Math.ValueScale01(ref response);
             ImageAnalysis.Convolve.Convert(ref response, filt2stride, filt2height, Texture.width, ref target);
 
@@ -122,6 +99,12 @@ namespace ImageAnalysis.Textures
             int[,] sortOrder = Math.ArgSort(ref response);
             int[,] corners = Math.FlexibleTake(ref response, ref sortOrder, nCorners, aheadCost, filt2stride, minDistance);
             return corners;
+        }
+
+        public Coordinate[] LocateCornersAsCoordinates(int nCorners, double aheadCost, int minDistance, int offset=0)
+        {
+            int[,] corners = LocateCorners(nCorners, aheadCost, minDistance);
+            return Math.ConvertCoordinate(corners, filt2stride, offset);
         }
     }
 }
