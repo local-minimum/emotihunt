@@ -34,6 +34,25 @@ public abstract class Detector : MonoBehaviour {
 
     MobileUI mobileUI;
 
+    public DetectorStatus Status
+    {
+        get
+        {
+            if (!enabled) {
+                return DetectorStatus.Inactive;
+            } else if (working)
+            {
+                return DetectorStatus.Detecting;
+            } else if (showingResults)
+            {
+                return DetectorStatus.ShowingResults;
+            } else
+            {
+                return DetectorStatus.Filming;
+            }
+        }
+    }
+
     void Awake()
     {
         mobileUI = FindObjectOfType<MobileUI>();
