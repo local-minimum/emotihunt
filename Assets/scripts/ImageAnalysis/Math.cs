@@ -279,9 +279,9 @@ namespace ImageAnalysis
             return coords;
         }
 
-        public static Vector2 CoordinateToRelativeVector2(Coordinate coord, Texture2D tex)
+        public static Vector2 CoordinateToRelativeVector2(Coordinate coord, Texture2D tex, int offset=0)
         {
-            return new Vector2((float)coord.x / tex.width, (float)coord.y / tex.height);
+            return new Vector2(((float)coord.x + offset) / tex.width, ((float)coord.y + offset) / tex.height);
         }
 
         public static Vector3 RelativeVector2ToWorld(Vector2 v, RectTransform imageT, RectTransform canvasT)

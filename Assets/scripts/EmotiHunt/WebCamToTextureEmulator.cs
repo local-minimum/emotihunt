@@ -16,7 +16,15 @@ public class WebCamToTextureEmulator : Detector
 
     [SerializeField]
     Image detectionImage;
+
+    [SerializeField]
+    bool debug;
+
+    [SerializeField]
+    UICornerMarker cornerPrefab;
+
     Texture2D detectionTex;
+    List<UICornerMarker> cornerMarkers = new List<UICornerMarker>();
 
     void Start()
     {
@@ -57,5 +65,32 @@ public class WebCamToTextureEmulator : Detector
     {
         cornerTexture.ApplyTargetToTexture(detectionTex);
         detectionImage.enabled = true;
+        MarkCorners(corners, (imageTex.width - cornerTexture.ResponseStride) / 2);
+    }
+
+    void MarkCorners(ImageAnalysis.Coordinate[] coordinates, int offset)
+    {
+        UICornerMarker corner;
+
+        for (int i = 0; i < coordinates.Length; i++)
+        {
+            if (cornerMarkers.Count <= i)
+            {
+                corner = Instantiate(cornerPrefab);
+                corner.transform.SetParent(viewImage.transform);
+                corner.Setup();
+                cornerMarkers.Add(corner);
+            }
+            else
+            {
+                corner = cornerMarkers[i];
+            }
+            corner.SetCoordinate(coordinates[i], offset);
+        }
+
+        for (int i = coordinates.Length, cL = cornerMarkers.Count; i < cL; i++)
+        {
+            cornerMarkers[i].Showing = false;
+        }
     }
 }

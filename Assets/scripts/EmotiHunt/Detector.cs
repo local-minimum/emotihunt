@@ -31,6 +31,7 @@ public abstract class Detector : MonoBehaviour {
 
 
     protected float zoom = 0;
+    protected Coordinate[] corners;
 
     MobileUI mobileUI;
 
@@ -130,15 +131,16 @@ public abstract class Detector : MonoBehaviour {
         _EdgeDrawCalculation();
 
         GetCornerDetection();
-        _PostDetection();
         GetCorners();
+
+        _PostDetection();
         working = false;
 
     }
 
     void GetCorners()
     {
-        Coordinate[] corners = cornerTexture.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance, (size - cornerTexture.ResponseStride)/2);
+        corners = cornerTexture.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance, (size - cornerTexture.ResponseStride)/2);
         if (OnCornersDetected != null)
             OnCornersDetected(corners);
     }

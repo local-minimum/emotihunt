@@ -15,10 +15,10 @@ public class UICornerMarker : MonoBehaviour {
         selfImage = GetComponent<Image>();
     }
     
-    public void SetCoordinate(Coordinate coordinate)
+    public void SetCoordinate(Coordinate coordinate, int offset)
     {
         //Debug.Log(coordinate.x + ", " + coordinate.y);
-        Vector2 v = Math.CoordinateToRelativeVector2(coordinate, sourceImage.sprite.texture) - sourceImage.rectTransform.pivot;
+        Vector2 v = Math.CoordinateToRelativeVector2(coordinate, sourceImage.sprite.texture, offset) - sourceImage.rectTransform.pivot;
         transform.localPosition = new Vector3(v.x * sourceImage.rectTransform.rect.width, v.y * sourceImage.rectTransform.rect.height);
         Showing = true;
     }

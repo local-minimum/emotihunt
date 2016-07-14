@@ -113,7 +113,7 @@ public class EditorUI : MonoBehaviour {
                 corner = corners[i];
             }
             //Debug.Log(cornerPoints[i, 0] + ", s=" + stride + ", o=" + offset);
-            corner.SetCoordinate(coordinates[i]);
+            corner.SetCoordinate(coordinates[i], offset);
             //corner.SetColor(cornerPoints[i, 1]);
         }
 
