@@ -7,7 +7,7 @@ namespace ImageAnalysis.Textures
     {
         Filter sobelX = Filter.Get<Filters.SobelX>();
         Filter sobelY = Filter.Get<Filters.SobelY>();
-        Filter gauss3Filter = Filter.Get<Filters.Gaussian5x5S3>();
+        Filter gauss3Filter = Filter.Get<Filters.Gaussian9x9S3>();
 
         double[,] gaussX;
         double[,] gaussY;
