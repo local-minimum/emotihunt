@@ -29,6 +29,10 @@ public abstract class Detector : MonoBehaviour {
     [SerializeField, Range(0, 40)]
     int minDistance = 9;
 
+    [SerializeField]
+    UICornerMarker cornerPrefab;
+
+    List<UICornerMarker> cornerMarkers = new List<UICornerMarker>();
 
     protected float zoom = 0;
     protected Coordinate[] corners;
@@ -152,6 +156,32 @@ public abstract class Detector : MonoBehaviour {
         if (OnDetectorStatusChange != null)
         {
             OnDetectorStatusChange(this, DetectorStatus.ShowingResults);
+        }
+    }
+
+    protected void MarkCorners(Coordinate[] coordinates, int offset, Transform parent)
+    {
+        UICornerMarker corner;
+
+        for (int i = 0; i < coordinates.Length; i++)
+        {
+            if (cornerMarkers.Count <= i)
+            {
+                corner = Instantiate(cornerPrefab);
+                corner.transform.SetParent(parent);
+                corner.Setup();
+                cornerMarkers.Add(corner);
+            }
+            else
+            {
+                corner = cornerMarkers[i];
+            }
+            corner.SetCoordinate(coordinates[i], offset);
+        }
+
+        for (int i = coordinates.Length, cL = cornerMarkers.Count; i < cL; i++)
+        {
+            cornerMarkers[i].Showing = false;
         }
     }
 
