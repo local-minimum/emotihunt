@@ -42,13 +42,13 @@ public class EditorUI : MonoBehaviour {
     Emoji currentEmoji;
 
     [SerializeField, Range(12, 42)]
-    int nCorners = 20;
+    public int nCorners = 20;
 
     [SerializeField, Range(0, 2)]
-    float aheadCost = 1;
+    public float aheadCost = 1;
 
     [SerializeField, Range(0, 9)]
-    int minDistance;
+    public int minDistance;
 
     public void SetName(Text text)
     {
@@ -107,6 +107,21 @@ public class EditorUI : MonoBehaviour {
         SetEmoji(currentEmoji);
     }
 
+    public void SetDetectionCorners(Slider slider)
+    {
+        nCorners = Mathf.RoundToInt(slider.value);
+    }
+    
+    public void SetDetectionAheadCost(Slider slider)
+    {
+        aheadCost = slider.value;
+    }
+
+    public void SetDetectionMinDist(Slider slider)
+    {
+        minDistance = Mathf.RoundToInt(slider.value);
+    }
+
     static string CreateHash(ImageAnalysis.Coordinate[] corners, string secret)
     {
         return secret;
@@ -126,19 +141,11 @@ public class EditorUI : MonoBehaviour {
             BinaryFormatter bformatter = new BinaryFormatter();
             bformatter.Binder = new VersionDeserializationBinder();
 
-            /*try
-            {*/
-                EmojiDB emojiDB = (EmojiDB)bformatter.Deserialize(stream);
-                stream.Close();
-                return emojiDB;
+            EmojiDB emojiDB = (EmojiDB)bformatter.Deserialize(stream);
+            stream.Close();
+            return emojiDB;
 
-            /*}
-            catch (SerializationException)
-            {
-                Debug.LogError("Previous emoji database not deserializable or empty");
-                stream.Close();
-                return CreateEmojiDb();
-            }*/
+
         } catch (FileNotFoundException)
         {
             return CreateEmojiDb();
