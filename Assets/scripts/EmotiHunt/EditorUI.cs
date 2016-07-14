@@ -50,6 +50,11 @@ public class EditorUI : MonoBehaviour {
     [SerializeField, Range(0, 9)]
     public int minDistance;
 
+    [SerializeField]
+    UICornerMarker cornerPrefab;
+
+    List<UICornerMarker> corners;
+
     public void SetName(Text text)
     {
         emojiName = text.text;
@@ -80,11 +85,39 @@ public class EditorUI : MonoBehaviour {
 
         HarrisCornerTexture harrisCorner = GetCornerTexture(tex);
 
-        double[,] I = ImageAnalysis.Convolve.Texture2Double(tex);
+        double[,] I = ImageAnalysis.Convolve.Texture2Double(tex, true);
         harrisCorner.ConvolveAndApply(I, tex.width);
-        int[,] corners = harrisCorner.LocateCorners(nCorners, aheadCost, minDistance);
-        SetEmojiData(ImageAnalysis.Math.ConvertCoordinate(corners, harrisCorner.ResponseStride), I, tex.width);
+        int[,] cornerPoints = harrisCorner.LocateCorners(nCorners, aheadCost, minDistance);
+        SetEmojiData(ImageAnalysis.Math.ConvertCoordinate(cornerPoints, harrisCorner.ResponseStride), I, tex.width);
+        MarkCorners(cornerPoints, harrisCorner.ResponseStride, (tex.width - harrisCorner.ResponseStride) / 2);
         button.interactable = true;
+    }
+
+    void MarkCorners(int[,] cornerPoints, int stride, int offset)
+    {
+        UICornerMarker corner;
+        int l = cornerPoints.GetLength(0);
+
+        for (int i=0; i< l; i++)
+        {
+            if (corners.Count <= i)
+            {
+                corner = Instantiate(cornerPrefab);
+                corner.transform.SetParent(img.transform);
+                corner.Setup();
+                corners.Add(corner);
+            } else
+            {
+                corner = corners[i];
+            }
+            corner.SetCoordinate(ImageAnalysis.Math.ConvertCoordinate(cornerPoints[i, 0], stride, offset));
+            corner.SetColor(cornerPoints[i, 1]);
+        }
+
+        for (int i = l, cL = corners.Count; i<cL; i++)
+        {
+            corners[i].Showing = false;
+        }
     }
 
     void SetEmojiData(ImageAnalysis.Coordinate[] corners, double[,] pixels, int stride)
@@ -196,5 +229,10 @@ public class EditorUI : MonoBehaviour {
     {
         string names = LoadEmojiDB().Names;
         Debug.Log(string.IsNullOrEmpty(names) ? "Empty DB" : names);
+        corners = GetComponentsInChildren<UICornerMarker>().ToList();
+        foreach (UICornerMarker corner in corners)
+        {
+            corner.Showing = false;
+        }
     }  
 }
