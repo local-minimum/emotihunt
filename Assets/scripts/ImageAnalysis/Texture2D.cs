@@ -91,8 +91,7 @@ namespace ImageAnalysis
         public void ConvolveAndApply(double[,] data, int stride)
         {
             Convolve(data, stride);
-            texture.SetPixels(target);
-            texture.Apply();
+            ApplyTargetToTexture(texture);
         }
 
         public void ApplyTargetToTexture(Texture2D tex)

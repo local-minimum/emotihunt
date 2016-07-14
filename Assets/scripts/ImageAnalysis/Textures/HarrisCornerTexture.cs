@@ -43,36 +43,39 @@ namespace ImageAnalysis.Textures
             }
         }
 
-        public HarrisCornerTexture(Texture2D texture, float kappa) : base(texture)
+        public HarrisCornerTexture(Texture2D texture, float kappa, bool useAlpha=false) : base(texture)
         {
             Kappa = kappa;
-            ConstructHelper(texture);
+            ConstructHelper(texture, useAlpha);
         }
 
 
-        public HarrisCornerTexture(Texture2D texture) : base(texture)
+        public HarrisCornerTexture(Texture2D texture, bool useAlpha=false) : base(texture)
         {
-            ConstructHelper(texture);
+            ConstructHelper(texture, useAlpha);
         }
 
-        void ConstructHelper(Texture2D texture) { 
+        void ConstructHelper(Texture2D texture, bool useAlpha) {
+
+            int channels = useAlpha ? 4 : 3;
+
             filt1stride = texture.width - sobelX.Kernel.GetLength(1) + 1;
             filt1height = texture.height - sobelX.Kernel.GetLength(0) + 1;
             int filt1size = filt1height * filt1stride;
 
-            edgeX = new double[filt1size, 3];
-            edgeY = new double[filt1size, 3];
+            edgeX = new double[filt1size, channels];
+            edgeY = new double[filt1size, channels];
 
 
             filt2stride = filt1stride - gauss3Filter.Kernel.GetLength(1) + 1;
             filt2height = filt1height - gauss3Filter.Kernel.GetLength(0) + 1;
 
             int filt2size = filt2height * filt2stride;
-            gaussX = new double[filt2size, 3];
-            gaussY = new double[filt2size, 3];
+            gaussX = new double[filt2size, channels];
+            gaussY = new double[filt2size, channels];
 
-            A = new double[filt2size, 3, 2, 2];
-            response = new double[filt2size, 3];
+            A = new double[filt2size, channels, 2, 2];
+            response = new double[filt2size, channels];
         }
 
         public override void Convolve(double[,] data, int stride)

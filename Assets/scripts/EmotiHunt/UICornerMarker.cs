@@ -16,7 +16,8 @@ public class UICornerMarker : MonoBehaviour {
     }
     
     public void SetCoordinate(Coordinate coordinate)
-    {        
+    {
+        //Debug.Log(coordinate.x + ", " + coordinate.y);
         Vector2 v = Math.CoordinateToRelativeVector2(coordinate, sourceImage.sprite.texture) - sourceImage.rectTransform.pivot;
         transform.localPosition = new Vector3(v.x * sourceImage.rectTransform.rect.width, v.y * sourceImage.rectTransform.rect.height);
         Showing = true;

@@ -53,6 +53,9 @@ public class EditorUI : MonoBehaviour {
     [SerializeField]
     UICornerMarker cornerPrefab;
 
+    [SerializeField]
+    bool useAlpha = true;
+
     List<UICornerMarker> corners;
 
     public void SetName(Text text)
@@ -85,20 +88,19 @@ public class EditorUI : MonoBehaviour {
 
         HarrisCornerTexture harrisCorner = GetCornerTexture(tex);
 
-        double[,] I = ImageAnalysis.Convolve.Texture2Double(tex, true);
+        double[,] I = ImageAnalysis.Convolve.Texture2Double(tex, useAlpha);
         harrisCorner.ConvolveAndApply(I, tex.width);
-        int[,] cornerPoints = harrisCorner.LocateCorners(nCorners, aheadCost, minDistance);
-        SetEmojiData(ImageAnalysis.Math.ConvertCoordinate(cornerPoints, harrisCorner.ResponseStride), I, tex.width);
-        MarkCorners(cornerPoints, harrisCorner.ResponseStride, (tex.width - harrisCorner.ResponseStride) / 2);
+        ImageAnalysis.Coordinate[] coordinates = harrisCorner.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance);
+        SetEmojiData(coordinates, I, tex.width);
+        MarkCorners(coordinates, (tex.width - harrisCorner.ResponseStride) / 2);
         button.interactable = true;
     }
 
-    void MarkCorners(int[,] cornerPoints, int stride, int offset)
+    void MarkCorners(ImageAnalysis.Coordinate[] coordinates, int offset)
     {
         UICornerMarker corner;
-        int l = cornerPoints.GetLength(0);
 
-        for (int i=0; i< l; i++)
+        for (int i=0; i< coordinates.Length; i++)
         {
             if (corners.Count <= i)
             {
@@ -110,11 +112,12 @@ public class EditorUI : MonoBehaviour {
             {
                 corner = corners[i];
             }
-            corner.SetCoordinate(ImageAnalysis.Math.ConvertCoordinate(cornerPoints[i, 0], stride, offset));
-            corner.SetColor(cornerPoints[i, 1]);
+            //Debug.Log(cornerPoints[i, 0] + ", s=" + stride + ", o=" + offset);
+            corner.SetCoordinate(coordinates[i]);
+            //corner.SetColor(cornerPoints[i, 1]);
         }
 
-        for (int i = l, cL = corners.Count; i<cL; i++)
+        for (int i = coordinates.Length, cL = corners.Count; i<cL; i++)
         {
             corners[i].Showing = false;
         }
@@ -216,7 +219,7 @@ public class EditorUI : MonoBehaviour {
             new Rect(0, 0, source.width, source.height), 
             Vector2.one * 0.5f);
 
-        HarrisCornerTexture cornerTex = new HarrisCornerTexture(cornerImg.sprite.texture);
+        HarrisCornerTexture cornerTex = new HarrisCornerTexture(cornerImg.sprite.texture, useAlpha);
         return cornerTex;
     }
 

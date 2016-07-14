@@ -265,7 +265,7 @@ namespace ImageAnalysis
 
         public static Coordinate ConvertCoordinate(int pos, int stride, int offset=0)
         {
-            return new Coordinate(pos % stride + offset, Mathf.FloorToInt(pos / stride) + offset);
+            return new Coordinate((pos % stride) + offset, Mathf.FloorToInt(pos / stride) + offset);
         }
 
         public static Coordinate[] ConvertCoordinate(int[,] pos, int stride, int offset=0)
