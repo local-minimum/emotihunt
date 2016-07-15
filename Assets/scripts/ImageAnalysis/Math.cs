@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using UnityEngine.UI;
 
 namespace ImageAnalysis
 {
@@ -279,17 +280,32 @@ namespace ImageAnalysis
             return coords;
         }
 
-        public static Vector2 CoordinateToRelativeVector2(Coordinate coord, Texture2D tex, int offset=0)
+        public static Vector2 CoordinateToTexRelativeVector2(Coordinate coord, Texture2D tex, int offset=0)
         {
             return new Vector2(((float)coord.x + offset) / tex.width, ((float)coord.y + offset) / tex.height);
         }
 
-        public static Vector3 RelativeVector2ToWorld(Vector2 v, RectTransform imageT, RectTransform canvasT)
+        public static Vector2 TexRelativeVector2ToTransformRelative(Vector2 v, Image img)
         {
-            Vector2 canvasPos = imageT.TransformPoint(v - imageT.pivot);
-            Debug.Log(canvasPos);
-            Debug.Log(canvasT.rect.size);
-            return new Vector3(canvasPos.x, canvasPos.y);
+            RectTransform imageTransform = img.rectTransform;
+            if (img.preserveAspect)
+            {
+                float widthRatio = (float)img.sprite.texture.width / (float)imageTransform.rect.width;
+                float heightRatio = (float)img.sprite.texture.height / (float) imageTransform.rect.height;
+                float texAspect = (float)img.sprite.texture.width / img.sprite.texture.height;
+                Debug.Log("wR=" + widthRatio + " hR=" + heightRatio + " A=" + texAspect);
+                if (widthRatio > heightRatio)
+                {
+                    return new Vector2(v.x, v.y / widthRatio * heightRatio);
+                }
+                else {
+                    return new Vector2(v.x / heightRatio * widthRatio, v.y);
+                }
+
+            } else
+            {
+                return v;
+            }
         }
     }
 }

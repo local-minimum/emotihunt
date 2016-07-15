@@ -45,7 +45,7 @@ public class EmojiProjection : MonoBehaviour {
     private void HandleNewCorners(Coordinate[] corners)
     {
         coordinate = corners[0];
-        Vector2 v = Math.CoordinateToRelativeVector2(coordinate, sourceImage.sprite.texture) - sourceImage.rectTransform.pivot;
+        Vector2 v = Math.CoordinateToTexRelativeVector2(coordinate, sourceImage.sprite.texture) - sourceImage.rectTransform.pivot;
         transform.localPosition = new Vector3(v.x * sourceImage.rectTransform.rect.width, v.y * sourceImage.rectTransform.rect.height);
         selfImage.enabled = true;
     }
