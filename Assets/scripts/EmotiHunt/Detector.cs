@@ -2,7 +2,6 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using ImageAnalysis.Textures;
-using ImageAnalysis;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -26,9 +25,45 @@ public sealed class VersionDeserializationBinder : SerializationBinder
 }
 
 public delegate void DetectorStatusEvent(Detector screen, DetectorStatus status);
-public delegate void EmojiMatchEvent(int index, Coordinate[] corners, Emoji emoji);
+public delegate void EmojiMatchEvent(int index, Vector2[] corners, Emoji emoji);
 
 public enum DetectorStatus {Filming, Detecting, ShowingResults, Inactive};
+
+[Serializable]
+public struct Vector2Surrogate {
+
+    public float x;
+    public float y;
+
+    public Vector2 V2 { get { return new Vector2(x, y); } set { x = value.x; y = value.y; } }
+
+    public static Vector2Surrogate[] CreateArray(Vector2[] source)
+    {
+        int l = source.Length;
+        Vector2Surrogate[] target = new Vector2Surrogate[l];
+        for (int i=0; i< l; i++)
+        {
+            target[i].V2 = source[i];
+        }
+
+        return target;
+    }
+}
+
+public static class Vector2Helpers
+{
+    public static Vector2[] ToVector2(this Vector2Surrogate[] source)
+    {
+        int l = source.Length;
+        Vector2[] target = new Vector2[l];
+        for (int i=0; i< l; i++)
+        {
+            target[i] = source[i].V2;
+        }
+        return target;
+    }
+}
+
 
 public abstract class Detector : MonoBehaviour {
 
@@ -60,7 +95,7 @@ public abstract class Detector : MonoBehaviour {
     List<UICornerMarker> cornerMarkers = new List<UICornerMarker>();
 
     protected float zoom = 0;
-    protected Coordinate[] corners;
+    protected Vector2[] corners;
 
     MobileUI mobileUI;
 
@@ -163,9 +198,21 @@ public abstract class Detector : MonoBehaviour {
             Stream stream = File.Open(dbLocation, FileMode.Open);
             BinaryFormatter bformatter = new BinaryFormatter();
             bformatter.Binder = new VersionDeserializationBinder();
+            EmojiDB emojiDB;
+            try {
+                emojiDB = (EmojiDB)bformatter.Deserialize(stream);
+                stream.Close();
+            } catch (Exception ex) {
 
-            EmojiDB emojiDB = (EmojiDB)bformatter.Deserialize(stream);
-            stream.Close();
+                if (ex is ArgumentException || ex is EndOfStreamException)
+                {
+                    stream.Close();
+                    emojiDB = CreateEmojiDb();
+                } else
+                {
+                    throw;
+                }
+            }
             return emojiDB;
 
 
@@ -223,7 +270,9 @@ public abstract class Detector : MonoBehaviour {
 
     void GetCorners()
     {
-        corners = cornerTexture.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance, (size - cornerTexture.ResponseStride)/2);
+        corners = ImageAnalysis.Math.CoordinatesToTexRelativeVector2(
+            cornerTexture.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance, (size - cornerTexture.ResponseStride)/2),
+            cornerTexture.Texture);
         for (int i = 0; i < emojis.Count; i++) {
             if (OnMatchWithEmoji != null)
                 OnMatchWithEmoji(i, corners, emojis[i]);
@@ -240,7 +289,7 @@ public abstract class Detector : MonoBehaviour {
         }
     }
 
-    protected void MarkCorners(Coordinate[] coordinates, int offset, Transform parent)
+    protected void MarkCorners(Vector2[] coordinates, int offset, Transform parent)
     {
         UICornerMarker corner;
 

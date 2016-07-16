@@ -67,8 +67,9 @@ public class EditorUI : MonoBehaviour {
         double[,] I = ImageAnalysis.Convolve.Texture2Double(tex, useAlpha);
         harrisCorner.ConvolveAndApply(I, tex.width);
         ImageAnalysis.Coordinate[] coordinates = harrisCorner.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance);
-        SetEmojiData(coordinates, I, tex.width);
-        MarkCorners(coordinates, (tex.width - harrisCorner.ResponseStride) / 2);
+        int offset = (tex.width - harrisCorner.ResponseStride) / 2;
+        SetEmojiData(coordinates, I, tex, offset);
+        MarkCorners(coordinates, offset);
         button.interactable = true;
     }
 
@@ -99,14 +100,14 @@ public class EditorUI : MonoBehaviour {
         }
     }
 
-    void SetEmojiData(ImageAnalysis.Coordinate[] corners, double[,] pixels, int stride)
+    void SetEmojiData(ImageAnalysis.Coordinate[] corners, double[,] pixels, Texture2D tex, int offset)
     {
         currentEmoji = new Emoji();
         currentEmoji.emojiName = emojiName;
-        currentEmoji.corners = corners;
+        currentEmoji.corners = Vector2Surrogate.CreateArray(ImageAnalysis.Math.CoordinatesToTexRelativeVector2(corners, tex, offset));
         currentEmoji.pixels = pixels;
-        currentEmoji.pixelStride = stride;
-        currentEmoji.height = pixels.GetLength(0) / stride;
+        currentEmoji.pixelStride = tex.width;
+        currentEmoji.height = tex.height;
 
         //TODO: Something more useful
         currentEmoji.secret = GetHashCode().ToString();
@@ -134,7 +135,7 @@ public class EditorUI : MonoBehaviour {
         minDistance = Mathf.RoundToInt(slider.value);
     }
 
-    static string CreateHash(ImageAnalysis.Coordinate[] corners, string secret)
+    static string CreateHash(Vector2Surrogate[] corners, string secret)
     {
         return secret;
     }

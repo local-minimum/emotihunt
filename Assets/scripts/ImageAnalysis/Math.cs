@@ -285,6 +285,16 @@ namespace ImageAnalysis
             return new Vector2(((float)coord.x + offset) / tex.width, ((float)coord.y + offset) / tex.height);
         }
 
+        public static Vector2[] CoordinatesToTexRelativeVector2(Coordinate[] coord, Texture2D tex, int offset = 0)
+        {
+            Vector2[] v = new Vector2[coord.Length];
+            for (int i=0, l=v.Length; i<l; i++)
+            {
+                v[i] = CoordinateToTexRelativeVector2(coord[i], tex, offset);
+            }
+            return v;
+        }
+
         public static Vector2 TexRelativeVector2ToTransformRelative(Vector2 v, Image img)
         {
             RectTransform imageTransform = img.rectTransform;

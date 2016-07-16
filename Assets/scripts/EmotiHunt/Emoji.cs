@@ -16,7 +16,7 @@ public class Emoji
     public int pixelStride;
     public int height;
 
-    public Coordinate[] corners;
+    public Vector2Surrogate[] corners;
     
 
 }

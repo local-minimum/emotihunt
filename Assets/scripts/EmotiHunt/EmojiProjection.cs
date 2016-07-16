@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class EmojiProjection : MonoBehaviour {
 
-    public Coordinate coordinate;
+    public Vector2 coordinate;
     public Image sourceImage;
     Detector detector;
     Image selfImage;
@@ -44,17 +44,25 @@ public class EmojiProjection : MonoBehaviour {
         }
     }
 
-    private void HandleNewCorners(int index, Coordinate[] corners, Emoji emoji)
+    private void HandleNewCorners(int index, Vector2[] corners, Emoji emoji)
     {
         if (index != trackingEmojiIndex)
             return;
 
         SetSelfImage(emoji);
+        Vector2[] emojiCorners = emoji.corners.ToVector2();
+        float val = TriangleMatch(emojiCorners, new int[] { 3, 5, 10 }, corners, new int[] { 1, 7, 11 });
         
         coordinate = corners[0];
-        Vector2 v = Math.CoordinateToTexRelativeVector2(coordinate, sourceImage.sprite.texture) - sourceImage.rectTransform.pivot;
+        Vector2 v = coordinate;
         transform.localPosition = new Vector3(v.x * sourceImage.rectTransform.rect.width, v.y * sourceImage.rectTransform.rect.height);
         selfImage.enabled = true;
+    }
+
+    float TriangleMatch(Vector2[] emojiCorners, int[] emojiIndices, Vector2[] imageCoordinates, int[] imageIndices)
+    {
+
+        return 0;
     }
 
     private void SetSelfImage(Emoji emoji)
