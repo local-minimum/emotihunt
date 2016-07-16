@@ -51,7 +51,12 @@ public class EmojiProjection : MonoBehaviour {
 
         SetSelfImage(emoji);
         Vector2[] emojiCorners = emoji.corners.ToVector2();
-        float val = TriangleMatch(emojiCorners, new int[] { 3, 5, 10 }, corners, new int[] { 1, 7, 11 });
+
+        //TODO: Random take 3 or something
+        Vector2 vEm1 = emojiCorners[5] - emojiCorners[3];
+        Vector2 vEm2 = emojiCorners[9] - emojiCorners[3];
+
+        float val = TriangleRotAndScaleMatch(vEm1, vEm2, corners, 1, 7, 11);
         
         coordinate = corners[0];
         Vector2 v = coordinate;
@@ -59,11 +64,17 @@ public class EmojiProjection : MonoBehaviour {
         selfImage.enabled = true;
     }
 
-    float TriangleMatch(Vector2[] emojiCorners, int[] emojiIndices, Vector2[] imageCoordinates, int[] imageIndices)
-    {
+    static float TriangleRotAndScaleMatch(Vector2 emojiV1, Vector2 emojiV2, Vector2[] imgCorners, int i0, int i1, int i2)
+    { 
 
-        return 0;
+        Vector2 imgV1 = imgCorners[i1] - imgCorners[i0];
+        Vector2 imgV2 = imgCorners[i2] - imgCorners[i0];
+
+        float d1 = Vector2.Dot(imgV1, emojiV1);
+        float d2 = Vector2.Dot(imgV2, emojiV2);
+        return Mathf.Pow(d1 - d2, 2);
     }
+
 
     private void SetSelfImage(Emoji emoji)
     {
