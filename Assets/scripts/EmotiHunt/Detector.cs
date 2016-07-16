@@ -3,9 +3,30 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using ImageAnalysis.Textures;
 using ImageAnalysis;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Reflection;
+using System;
+
+public sealed class VersionDeserializationBinder : SerializationBinder
+{
+    public override Type BindToType(string assemblyName, string typeName)
+    {
+        if (!string.IsNullOrEmpty(assemblyName) && !string.IsNullOrEmpty(typeName))
+        {
+            Type typeToDeserialze = null;
+
+            assemblyName = Assembly.GetExecutingAssembly().FullName;
+            typeToDeserialze = Type.GetType(string.Format("{0}, {1}", typeName, assemblyName));
+            return typeToDeserialze;
+        }
+        return null;
+    }
+}
 
 public delegate void DetectorStatusEvent(Detector screen, DetectorStatus status);
-public delegate void DetectionEvent(ImageAnalysis.Coordinate[] corners);
+public delegate void DetectionEvent(Coordinate[] corners);
 
 public enum DetectorStatus {Filming, Detecting, ShowingResults, Inactive};
 
@@ -13,6 +34,8 @@ public abstract class Detector : MonoBehaviour {
 
     public event DetectionEvent OnCornersDetected;
     public event DetectorStatusEvent OnDetectorStatusChange;
+
+    static string dbLocation = "Assets/data/emoji.db";
 
     protected bool working = false;
     protected bool showingResults = false;
@@ -118,6 +141,56 @@ public abstract class Detector : MonoBehaviour {
         image.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), Vector2.one * 0.5f);
         image.sprite.name = "Dynamic texture";
         return tex;
+    }
+
+    public static void SetEmoji(Emoji emoji)
+    {
+        EmojiDB db = LoadEmojiDB();
+        db.Set(emoji);
+        SaveEmojiDB(db);
+    }
+
+    public static EmojiDB LoadEmojiDB()
+    {
+        try
+        {
+            Stream stream = File.Open(dbLocation, FileMode.Open);
+            BinaryFormatter bformatter = new BinaryFormatter();
+            bformatter.Binder = new VersionDeserializationBinder();
+
+            EmojiDB emojiDB = (EmojiDB)bformatter.Deserialize(stream);
+            stream.Close();
+            return emojiDB;
+
+
+        }
+        catch (FileNotFoundException)
+        {
+            return CreateEmojiDb();
+        }
+    }
+
+    public static EmojiDB CreateEmojiDb()
+    {
+        EmojiDB db = new EmojiDB();
+        return db;
+    }
+
+
+    public static void SaveEmojiDB(Dictionary<string, Emoji> db)
+    {
+        var emojiDB = LoadEmojiDB();
+        emojiDB.DB = db;
+        SaveEmojiDB(emojiDB);
+    }
+
+    public static void SaveEmojiDB(EmojiDB db)
+    {
+        Stream stream = File.Open(dbLocation, FileMode.Create);
+        BinaryFormatter bformatter = new BinaryFormatter();
+        bformatter.Binder = new VersionDeserializationBinder();
+        bformatter.Serialize(stream, db);
+        stream.Close();
     }
 
     protected abstract void _EdgeDrawCalculation();

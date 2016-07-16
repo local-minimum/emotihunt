@@ -3,32 +3,8 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using ImageAnalysis.Textures;
 using System.Linq;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Reflection;
-using System;
-
-public sealed class VersionDeserializationBinder : SerializationBinder
-{
-    public override Type BindToType(string assemblyName, string typeName)
-    {
-        if (!string.IsNullOrEmpty(assemblyName) && !string.IsNullOrEmpty(typeName))
-        {
-            Type typeToDeserialze = null;
-
-            assemblyName = Assembly.GetExecutingAssembly().FullName;
-            typeToDeserialze = Type.GetType(string.Format("{0}, {1}", typeName, assemblyName));
-            return typeToDeserialze;
-        }
-        return null;
-    }
-}
 
 public class EditorUI : MonoBehaviour {
-
-    static string dbLocation = "Assets/data/emoji.db";
-
 
     string emojiName = "";
 
@@ -140,7 +116,7 @@ public class EditorUI : MonoBehaviour {
 
     public void SaveEmoji(Button button)
     {
-        SetEmoji(currentEmoji);
+        Detector.SetEmoji(currentEmoji);
     }
 
     public void SetDetectionCorners(Slider slider)
@@ -163,54 +139,6 @@ public class EditorUI : MonoBehaviour {
         return secret;
     }
 
-    static void SetEmoji(Emoji emoji)
-    {
-        EmojiDB db = LoadEmojiDB();
-        db.Set(emoji);
-        SaveEmojiDB(db);
-    }
-
-    static EmojiDB LoadEmojiDB()
-    {
-        try {
-            Stream stream = File.Open(dbLocation, FileMode.Open);
-            BinaryFormatter bformatter = new BinaryFormatter();
-            bformatter.Binder = new VersionDeserializationBinder();
-
-            EmojiDB emojiDB = (EmojiDB)bformatter.Deserialize(stream);
-            stream.Close();
-            return emojiDB;
-
-
-        } catch (FileNotFoundException)
-        {
-            return CreateEmojiDb();
-        }
-    }
-
-    static EmojiDB CreateEmojiDb()
-    {
-        EmojiDB db = new EmojiDB();          
-        return db;
-    }
-    
-
-    static void SaveEmojiDB(Dictionary<string, Emoji> db)
-    {
-        var emojiDB = LoadEmojiDB();
-        emojiDB.DB = db;
-        SaveEmojiDB(emojiDB);
-    }
-
-    static void SaveEmojiDB(EmojiDB db)
-    {
-        Stream stream = File.Open(dbLocation, FileMode.Create);
-        BinaryFormatter bformatter = new BinaryFormatter();
-        bformatter.Binder = new VersionDeserializationBinder();
-        bformatter.Serialize(stream, db);
-        stream.Close();
-    }
-
     HarrisCornerTexture GetCornerTexture(Texture2D source)
     {
         Texture2D target = new Texture2D(source.width, source.height);
@@ -230,7 +158,7 @@ public class EditorUI : MonoBehaviour {
     
     public void Start()
     {
-        string names = LoadEmojiDB().Names;
+        string names = Detector.LoadEmojiDB().Names;
         Debug.Log(string.IsNullOrEmpty(names) ? "Empty DB" : names);
         corners = GetComponentsInChildren<UICornerMarker>().ToList();
         foreach (UICornerMarker corner in corners)
