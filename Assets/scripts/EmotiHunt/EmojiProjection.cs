@@ -9,6 +9,8 @@ public class EmojiProjection : MonoBehaviour {
     public Image sourceImage;
     Detector detector;
     Image selfImage;
+    [SerializeField]
+    int trackingEmojiIndex = 0;
 
     void Awake()
     {
@@ -23,13 +25,13 @@ public class EmojiProjection : MonoBehaviour {
 
     void OnEnable()
     {
-        detector.OnCornersDetected += HandleNewCorners;
+        detector.OnMatchWithEmoji += HandleNewCorners;
         detector.OnDetectorStatusChange += HandleDetectorStatus;
     }
 
     void OnDisable()
     {
-        detector.OnCornersDetected -= HandleNewCorners;
+        detector.OnMatchWithEmoji -= HandleNewCorners;
         detector.OnDetectorStatusChange -= HandleDetectorStatus;
     }
 
@@ -42,11 +44,26 @@ public class EmojiProjection : MonoBehaviour {
         }
     }
 
-    private void HandleNewCorners(Coordinate[] corners)
+    private void HandleNewCorners(int index, Coordinate[] corners, Emoji emoji)
     {
+        if (index != trackingEmojiIndex)
+            return;
+
+        SetSelfImage(emoji);
+        
         coordinate = corners[0];
         Vector2 v = Math.CoordinateToTexRelativeVector2(coordinate, sourceImage.sprite.texture) - sourceImage.rectTransform.pivot;
         transform.localPosition = new Vector3(v.x * sourceImage.rectTransform.rect.width, v.y * sourceImage.rectTransform.rect.height);
         selfImage.enabled = true;
+    }
+
+    private void SetSelfImage(Emoji emoji)
+    {
+        Debug.Log(emoji.pixelStride + "x" + emoji.height);
+        Color[] pixels = Convolve.Resize(ref emoji.pixels, emoji.pixelStride, emoji.pixelStride, emoji.height);
+        Texture2D tex = new Texture2D(emoji.pixelStride, emoji.height);
+        tex.SetPixels(pixels);
+        tex.Apply();
+        selfImage.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one * 0.5f);
     }
 }

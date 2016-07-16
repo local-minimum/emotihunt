@@ -106,7 +106,7 @@ public class EditorUI : MonoBehaviour {
         currentEmoji.corners = corners;
         currentEmoji.pixels = pixels;
         currentEmoji.pixelStride = stride;
-        currentEmoji.height = pixels.Length / stride;
+        currentEmoji.height = pixels.GetLength(0) / stride;
 
         //TODO: Something more useful
         currentEmoji.secret = GetHashCode().ToString();

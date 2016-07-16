@@ -26,13 +26,13 @@ public sealed class VersionDeserializationBinder : SerializationBinder
 }
 
 public delegate void DetectorStatusEvent(Detector screen, DetectorStatus status);
-public delegate void DetectionEvent(Coordinate[] corners);
+public delegate void EmojiMatchEvent(int index, Coordinate[] corners, Emoji emoji);
 
 public enum DetectorStatus {Filming, Detecting, ShowingResults, Inactive};
 
 public abstract class Detector : MonoBehaviour {
 
-    public event DetectionEvent OnCornersDetected;
+    public event EmojiMatchEvent OnMatchWithEmoji;
     public event DetectorStatusEvent OnDetectorStatusChange;
 
     static string dbLocation = "Assets/data/emoji.db";
@@ -54,6 +54,8 @@ public abstract class Detector : MonoBehaviour {
 
     [SerializeField]
     UICornerMarker cornerPrefab;
+
+    List<Emoji> emojis = new List<Emoji>();
 
     List<UICornerMarker> cornerMarkers = new List<UICornerMarker>();
 
@@ -85,6 +87,10 @@ public abstract class Detector : MonoBehaviour {
     {
         mobileUI = FindObjectOfType<MobileUI>();
         I = new double[size * size, 3];
+
+        //TODO: This is just debug-wise
+        emojis.Add(LoadEmojiDB().DB["sun"]);
+        Debug.Log(emojis[0].pixels.GetLength(0));
     }
 
     void OnEnable()
@@ -218,8 +224,10 @@ public abstract class Detector : MonoBehaviour {
     void GetCorners()
     {
         corners = cornerTexture.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance, (size - cornerTexture.ResponseStride)/2);
-        if (OnCornersDetected != null)
-            OnCornersDetected(corners);
+        for (int i = 0; i < emojis.Count; i++) {
+            if (OnMatchWithEmoji != null)
+                OnMatchWithEmoji(i, corners, emojis[i]);
+        }
     }
 
     void GetCornerDetection()
