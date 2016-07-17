@@ -11,6 +11,8 @@ public class EmojiProjection : MonoBehaviour {
     [SerializeField]
     int trackingEmojiIndex = 0;
 
+    [SerializeField, Range(0, 10)] float maxSqDist = 3f;
+
     void Awake()
     {
         detector = GetComponentInParent<Detector>();
@@ -123,10 +125,10 @@ public class EmojiProjection : MonoBehaviour {
     }
 
 
-    static float GetScale(float e1, float e2, float e3, Vector2[] imgCorners, int id0, int id1, int id2)
+    static float GetScale(float e1, float e2, float e3, Vector2 A, Vector2 B, Vector2 C)
     {
-        Vector2 imgV1 = imgCorners[id1] - imgCorners[id0];
-        Vector2 imgV2 = imgCorners[id2] - imgCorners[id0];
+        Vector2 imgV1 = B - A;
+        Vector2 imgV2 = C - A;
 
         float i1 = imgV1.magnitude;
         float i2 = imgV1.magnitude;
@@ -144,20 +146,78 @@ public class EmojiProjection : MonoBehaviour {
         return ((A - a) + (B - b) + (C - c)) / 3f;
     }
 
-    static Vector2[] GetTranslation(float e1, float e2, float e3, Vector2[] eCorners, int idE0, int idE1, int idE2, Vector2[] imgCorners, int id0, int id1, int id2)
-    {
-        float s = GetScale(e1, e2, e3, imgCorners, id0, id1, id2);
-        Vector2 o = GetOffset(eCorners[idE0], eCorners[idE1], eCorners[idE2], imgCorners[id0], imgCorners[id1], imgCorners[id2]);
 
+    static float GetAngle(Vector2 o, Vector2 a, Vector2 b, Vector2 c, Vector2 O, Vector2 A, Vector2 B, Vector2 C)
+    {
+
+        return (Vector2.Angle(a - o, A - O) + Vector2.Angle(b - o, B - O) + Vector2.Angle(c - o, C - O)) / 3f;
+    }
+
+    public static Vector2 RotateBy(Vector2 v, float a, bool bUseRadians = false)
+    {
+        if (!bUseRadians) a *= Mathf.Deg2Rad;
+        var ca = Mathf.Cos(a);
+        var sa = Mathf.Sin(a);
+        var rx = v.x * ca - v.y * sa;
+
+        return new Vector2((float)rx, (float)(v.x * sa + v.y * ca));
+    }
+
+    static Vector2[] GetTranslation(float e1, float e2, float e3, Vector2[] eCorners, 
+        int idE0, int idE1, int idE2, Vector2[] imgCorners, int id0, int id1, int id2)
+    {
+        Vector2 a = eCorners[idE0];
+        Vector2 b = eCorners[idE1];
+        Vector2 c = eCorners[idE2];
+        Vector2 A = imgCorners[id0];
+        Vector2 B = imgCorners[id1];
+        Vector2 C = imgCorners[id2];
+        Vector2 origo = (a + b + c) / 3f;
+        Vector2 Origo = (A + B + C) / 3f;        
+
+        float scale = GetScale(e1, e2, e3, A, B, C);
+        float angle = GetAngle(origo, a, b, c, Origo, A, B, C);
+        
         int l = eCorners.Length;
         Vector2[] newCorners = new Vector2[l];
 
         for (int i=0; i<l; i++)
         {
-            newCorners[i] = (eCorners[i] + o) * s;
+            newCorners[i] = RotateBy(eCorners[i] - origo, angle) * scale + Origo;
         }
         return newCorners;
     }
+
+    public float Score(Vector2[] translatedEmojiCorners, Vector2[] imageCorners)
+    {
+        float score = 0;
+
+        //TODO: maybe ensure no reuse of same corner twice?
+        int lI = imageCorners.Length;
+        int lE = lE = translatedEmojiCorners.Length;
+        for (int idE=0; idE < lE; idE++)
+        {
+            float minVal = 0;
+            bool found = false;
+            for (int idI=0; idI < lI; idI++)
+            {
+                float val = Vector2.SqrMagnitude(imageCorners[idI] - translatedEmojiCorners[idE]);
+                if (val < minVal || idI == 0)
+                {
+                    minVal = val;
+                    found = true;
+                }
+            }
+
+            if (found)
+            {
+                score = Mathf.Max(maxSqDist - minVal, 0) / maxSqDist;
+            }
+        }
+
+        return score / lE;
+    }
+
 
     private void SetSelfImage(Emoji emoji)
     {
