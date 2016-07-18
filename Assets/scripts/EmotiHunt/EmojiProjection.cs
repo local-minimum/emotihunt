@@ -74,6 +74,7 @@ public class EmojiProjection : MonoBehaviour {
             angle = GetAngle(emojiOrigoGuess, emojiCornerIndices, imageOrigoGuess, imageCornerIndices);
         }
 
+        //This function and it's parameters (Vector2, Vector2, float, float) should find a max-score (0-1 value range)
         float score = Score(emojiOrigoGuess, imageOrigoGuess, angle, scale);
         Debug.Log("Fit Score: " + score);
 
@@ -88,7 +89,7 @@ public class EmojiProjection : MonoBehaviour {
 
         //Scale does not account for selfImage:Texture2d size ratio...should be OK if native size
 
-        r.localScale = new Vector3(scale, scale, 1f);
+        r.localScale = new Vector3(1f / scale, 1f / scale, 1f);
         r.localPosition = new Vector3(imageOrigo.x * sourceImage.rectTransform.rect.width, imageOrigo.y * sourceImage.rectTransform.rect.height);
         selfImage.enabled = true;
 
@@ -259,7 +260,7 @@ public class EmojiProjection : MonoBehaviour {
 
         for (int i = 0; i < l; i++)
         {
-            newCorners[i] = RotateBy(emojiCorners[i] - emojiOrigo, angle) * scale + imageOrigo;
+            newCorners[i] = RotateBy(emojiCorners[i] - emojiOrigo, angle) / scale + imageOrigo;
         }
         return newCorners;
     }
