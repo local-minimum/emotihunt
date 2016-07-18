@@ -26,7 +26,7 @@ public class WebCamToTexture : Detector {
         {
             camTex.Play();
         }
-        if (!working && !showingResults && camTex.didUpdateThisFrame)
+        if (!working && !showingResults)
             StartCoroutine(ShowCurrentImage());
 	}
 
