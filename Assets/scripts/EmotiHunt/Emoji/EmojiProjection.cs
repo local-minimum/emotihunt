@@ -63,22 +63,107 @@ public class EmojiProjection : MonoBehaviour {
         int[] emojiCornerIndices;
         int[] imageCornerIndices;
 
-        Vector2 imageOrigoGuess = GetGuess(out emojiCornerIndices, out imageCornerIndices);
-        Vector2 emojiOrigoGuess = GetEmojiOrigo(emojiCornerIndices);
+        Vector2 imageOrigo = GetGuess(out emojiCornerIndices, out imageCornerIndices);
+        Vector2 emojiOrigo = GetEmojiOrigo(emojiCornerIndices);
 
         float scale = 1;
         float angle = 0;
         if (imageCornerIndices[0] != -1)
         {
             scale = GetScale(emojiCornerIndices, imageCornerIndices);
-            angle = GetAngle(emojiOrigoGuess, emojiCornerIndices, imageOrigoGuess, imageCornerIndices);
+            angle = GetAngle(emojiOrigo, emojiCornerIndices, imageOrigo, imageCornerIndices);
         }
 
-        //This function and it's parameters (Vector2, Vector2, float, float) should find a max-score (0-1 value range)
-        float score = Score(emojiOrigoGuess, imageOrigoGuess, angle, scale);
-        Debug.Log("Fit Score: " + score);
+        float prevScore = -1;
+        float score = 0;
+        int i = 0;
+        Vector2 nextOrigo = imageOrigo;
+        float nextAngle = angle;
+        float nextScale = scale;
+        float stepOrigo = 0.05f;
+        float stepAngle = 30f;
+        float stepScale = 0.1f;
+        float moveFraction = 0.5f;
 
-        PlaceImage(emojiOrigoGuess, imageOrigoGuess, angle, scale);
+        while (i < 100)
+        {
+            //This function and it's parameters (Vector2, Vector2, float, float) should find a max-score (0-1 value range)
+            score = Score(emojiOrigo, imageOrigo, angle, scale);
+            Debug.Log(string.Format("Fit Score ({0}): {1}", i, score));
+
+            if (score < prevScore * (i + 100f) / 200f)
+            {
+                score = prevScore;
+                Debug.Log(string.Format("Final Score: {0}", score));
+
+                break;
+            } else
+            {
+                angle = nextAngle;
+                scale = nextScale;
+                imageOrigo = nextOrigo;
+            }
+
+            Vector2 dOrigo = GetSobel(emojiOrigo, imageOrigo, angle, scale, stepOrigo);
+            float dOrigoMagnitude = dOrigo.magnitude;
+
+            float dAngle = GetAngleDelta(emojiOrigo, imageOrigo, angle, scale, stepAngle);
+            float dScale = GetScaleDelta(emojiOrigo, imageOrigo, angle, scale, stepScale);
+
+            float absDeltaOrigoMagnitude = Mathf.Abs(dOrigoMagnitude);
+            float absDeltaAngle = Mathf.Abs(dAngle);
+            float absDeltaScale = Mathf.Abs(dScale);
+            Debug.Log("dT: " + dOrigoMagnitude + " dA: " + dAngle + " dS: " + dScale);
+            if (absDeltaOrigoMagnitude > absDeltaAngle && absDeltaOrigoMagnitude > absDeltaScale)
+            {
+                Debug.Log("Moving origo: " + dOrigo);
+                nextOrigo = imageOrigo - dOrigo.normalized * stepOrigo * moveFraction;
+            }
+            else if (absDeltaAngle > absDeltaScale)
+            {
+                Debug.Log("Moving angle: " + dAngle);
+                nextAngle = angle - Mathf.Sign(absDeltaAngle) * stepAngle * moveFraction;
+            }
+            else
+            {
+                Debug.Log("Moving scale: " + dScale);
+                nextScale = scale - Mathf.Sign(absDeltaScale) * stepScale * moveFraction;
+            }
+
+            prevScore = score;
+            i++;
+        }
+        PlaceImage(emojiOrigo, imageOrigo, angle, scale);
+    }
+
+    float GetScaleDelta(Vector2 emojiOrigo, Vector2 imageOrigo, float angle, float scale, float step)
+    {        
+        float score_plus = Score(emojiOrigo, imageOrigo, angle, scale + step);
+        float score_minus = Score(emojiOrigo, imageOrigo, angle, scale - step);
+        return score_plus - score_minus;
+    }
+
+    float GetAngleDelta(Vector2 emojiOrigo, Vector2 imageOrigo, float angle, float scale, float step)
+    {        
+        float score_plus = Score(emojiOrigo, imageOrigo, angle + step, scale);
+        float score_minus = Score(emojiOrigo, imageOrigo, angle - step, scale);
+        return score_plus - score_minus;
+    }
+
+    Vector2 GetSobel(Vector2 emojiOrigo, Vector2 imageOrigo, float angle, float scale, float step)
+    {
+        float score_NW = Score(emojiOrigo, imageOrigo + new Vector2(-step, -step), angle, scale);
+        float score_N = Score(emojiOrigo, imageOrigo + new Vector2(0f, -step), angle, scale);
+        float score_NE = Score(emojiOrigo, imageOrigo + new Vector2(+step, -step), angle, scale);
+
+        float score_W = Score(emojiOrigo, imageOrigo + new Vector2(-step, 0f), angle, scale);
+        float score_E = Score(emojiOrigo, imageOrigo + new Vector2(+step, 0f), angle, scale);
+
+        float score_SW = Score(emojiOrigo, imageOrigo + new Vector2(-step, step), angle, scale);
+        float score_S = Score(emojiOrigo, imageOrigo + new Vector2(0f, step), angle, scale);
+        float score_SE = Score(emojiOrigo, imageOrigo + new Vector2(+step, step), angle, scale);
+
+        return new Vector2(2 * (score_E - score_W) + (score_NE - score_NW) + (score_SE - score_SW), 2 * (score_N - score_S) + (score_NW - score_SW) + (score_NE - score_SE));
     }
 
     void PlaceImage(Vector2 emojiOrigo, Vector2 imageOrigo, float angle, float scale)
