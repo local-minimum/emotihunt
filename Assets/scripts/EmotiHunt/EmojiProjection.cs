@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using ImageAnalysis;
 using UnityEngine.UI;
 
@@ -22,6 +21,7 @@ public class EmojiProjection : MonoBehaviour {
     {
         detector = GetComponentInParent<Detector>();
         selfImage = GetComponent<Image>();
+        selfImage.SetNativeSize();
     }   
 
     void Start()
@@ -60,13 +60,48 @@ public class EmojiProjection : MonoBehaviour {
         emojiCorners = emoji.corners.ToVector2();
         imageCorners = corners;
 
-        int[] emojiIndices;
-        int[] imageIndices;
-        Vector2 guess = GetGuess(out emojiIndices, out imageIndices);
+        int[] emojiCornerIndices;
+        int[] imageCornerIndices;
 
-        transform.localPosition = new Vector3(guess.x * sourceImage.rectTransform.rect.width, guess.y * sourceImage.rectTransform.rect.height);
+        Vector2 imageOrigoGuess = GetGuess(out emojiCornerIndices, out imageCornerIndices);
+        Vector2 emojiOrigoGuess = GetEmojiOrigo(emojiCornerIndices);
+
+        float scale = 1;
+        float angle = 0;
+        if (imageCornerIndices[0] != -1)
+        {
+            scale = GetScale(emojiCornerIndices, imageCornerIndices);
+            angle = GetAngle(emojiOrigoGuess, emojiCornerIndices, imageOrigoGuess, imageCornerIndices);
+        }
+
+        float score = Score(emojiOrigoGuess, imageOrigoGuess, angle, scale);
+        Debug.Log("Fit Score: " + score);
+
+        PlaceImage(emojiOrigoGuess, imageOrigoGuess, angle, scale);
+    }
+
+    void PlaceImage(Vector2 emojiOrigo, Vector2 imageOrigo, float angle, float scale)
+    {
+        RectTransform r = transform as RectTransform;
+        r.pivot = emojiOrigo;
+        r.localRotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
+        //Scale does not account for selfImage:Texture2d size ratio...should be OK if native size
+
+        r.localScale = new Vector3(scale, scale, 1f);
+        r.localPosition = new Vector3(imageOrigo.x * sourceImage.rectTransform.rect.width, imageOrigo.y * sourceImage.rectTransform.rect.height);
         selfImage.enabled = true;
-        
+
+    }
+
+    Vector2 GetEmojiOrigo(int[] emojiIndices)
+    {
+        Vector2 origo = Vector2.zero;
+        for (int i=0; i<emojiIndices.Length; i++)
+        {
+            origo += emojiCorners[emojiIndices[i]];
+        }
+        return origo / (float) emojiIndices.Length;
     }
 
     Vector2 GetGuess(out int[] emojiIndices, out int[] imageIndices)
@@ -149,6 +184,25 @@ public class EmojiProjection : MonoBehaviour {
     }
 
 
+    float GetScale(int[] emojiCornerIndices, int[] imageCornerIndices)
+    {
+        Vector2 imgV1 = imageCorners[imageCornerIndices[1]] - imageCorners[imageCornerIndices[0]];
+        Vector2 imgV2 = imageCorners[imageCornerIndices[2]] - imageCorners[imageCornerIndices[0]];
+
+        Vector2 emoV1 = emojiCorners[emojiCornerIndices[1]] - emojiCorners[emojiCornerIndices[0]];
+        Vector2 emoV2 = emojiCorners[emojiCornerIndices[2]] - emojiCorners[emojiCornerIndices[0]];
+
+        float i1 = imgV1.magnitude;
+        float i2 = imgV1.magnitude;
+        float i3 = (imgV2 - imgV1).magnitude;
+
+        float e1 = emoV1.magnitude;
+        float e2 = emoV1.magnitude;
+        float e3 = (emoV2 - emoV1).magnitude;
+
+        return (e1 / i1 + e2 / i2 + e3 / i3) / 3f;
+    }
+
     static float GetScale(float e1, float e2, float e3, Vector2 A, Vector2 B, Vector2 C)
     {
         Vector2 imgV1 = B - A;
@@ -171,6 +225,17 @@ public class EmojiProjection : MonoBehaviour {
     }
 
 
+    float GetAngle(Vector2 emojiOrigo, int[] emojiIndices, Vector2 imageOrigo, int[] imageIndices)
+    {
+        float angle = 0;
+        int l = Mathf.Min(emojiIndices.Length, imageIndices.Length);
+        for (int i=0; i< l; i++)
+        {
+            angle += Vector2.Angle(emojiCorners[emojiIndices[i]] - emojiOrigo, imageCorners[imageIndices[i]] - imageOrigo);
+        }
+        return angle / l;
+    }
+
     static float GetAngle(Vector2 o, Vector2 a, Vector2 b, Vector2 c, Vector2 O, Vector2 A, Vector2 B, Vector2 C)
     {
 
@@ -185,6 +250,18 @@ public class EmojiProjection : MonoBehaviour {
         var rx = v.x * ca - v.y * sa;
 
         return new Vector2((float)rx, (float)(v.x * sa + v.y * ca));
+    }
+
+    Vector2[] GetTranslation(Vector2 emojiOrigo, Vector2 imageOrigo, float angle, float scale)
+    {
+        int l = emojiCorners.Length;
+        Vector2[] newCorners = new Vector2[l];
+
+        for (int i = 0; i < l; i++)
+        {
+            newCorners[i] = RotateBy(emojiCorners[i] - emojiOrigo, angle) * scale + imageOrigo;
+        }
+        return newCorners;
     }
 
     static Vector2[] GetTranslation(float e1, float e2, float e3, Vector2[] eCorners, 
@@ -212,12 +289,12 @@ public class EmojiProjection : MonoBehaviour {
         return newCorners;
     }
 
-    public float Score(Vector2 offset, float scale, float angle)
+    public float Score(Vector2 emojiOrigo, Vector2 imageOrigo, float angle, float scale)
     {
-
+        return Score(GetTranslation(emojiOrigo, imageOrigo, angle, scale));
     }
 
-    public float Score()
+    public float Score(Vector2[] translatedEmojiCorners)
     {
         float score = 0;
 
