@@ -53,6 +53,15 @@ public class EmojiProjection : MonoBehaviour {
         SetSelfImage(emoji);
         Vector2[] emojiCorners = emoji.corners.ToVector2();
 
+        Vector2 guess = GetGuess(emojiCorners, corners);
+
+        transform.localPosition = new Vector3(guess.x * sourceImage.rectTransform.rect.width, guess.y * sourceImage.rectTransform.rect.height);
+        selfImage.enabled = true;
+        
+    }
+
+    static Vector2 GetGuess(Vector2[] emojiCorners, Vector2[] corners)
+    {
         //TODO: Random take 3 or something
         int idE0 = 3;
         int idE1 = 5;
@@ -69,16 +78,16 @@ public class EmojiProjection : MonoBehaviour {
         int bestC = 0;
         float bestVal = 0;
         int l = corners.Length;
-        for (int a=0; a< l; a++)
+        for (int a = 0; a < l; a++)
         {
-            for (int b=0; b< l; b++)
+            for (int b = 0; b < l; b++)
             {
                 if (b == a)
                 {
                     continue;
                 }
 
-                for (int c=0; c<l; c++)
+                for (int c = 0; c < l; c++)
                 {
                     if (c == a || c == b)
                     {
@@ -97,11 +106,12 @@ public class EmojiProjection : MonoBehaviour {
             }
         }
 
-        if (!first)
+        if (first)
         {
-            Vector2 v = (corners[bestA] + corners[bestB] + corners[bestC]) / 3f;
-            transform.localPosition = new Vector3(v.x * sourceImage.rectTransform.rect.width, v.y * sourceImage.rectTransform.rect.height);
-            selfImage.enabled = true;
+            return Vector2.zero;
+        }
+        else {
+            return (corners[bestA] + corners[bestB] + corners[bestC]) / 3f;
         }
     }
 
