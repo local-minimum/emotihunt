@@ -13,6 +13,11 @@ public class EmojiProjection : MonoBehaviour {
 
     [SerializeField, Range(0, 10)] float maxSqDist = 3f;
 
+    Vector2[] translatedEmojiCorners;
+    Vector2[] imageCorners;
+    Vector2[] emojiCorners;
+
+
     void Awake()
     {
         detector = GetComponentInParent<Detector>();
@@ -51,16 +56,20 @@ public class EmojiProjection : MonoBehaviour {
             return;
 
         SetSelfImage(emoji);
-        Vector2[] emojiCorners = emoji.corners.ToVector2();
 
-        Vector2 guess = GetGuess(emojiCorners, corners);
+        emojiCorners = emoji.corners.ToVector2();
+        imageCorners = corners;
+
+        int[] emojiIndices;
+        int[] imageIndices;
+        Vector2 guess = GetGuess(out emojiIndices, out imageIndices);
 
         transform.localPosition = new Vector3(guess.x * sourceImage.rectTransform.rect.width, guess.y * sourceImage.rectTransform.rect.height);
         selfImage.enabled = true;
         
     }
 
-    static Vector2 GetGuess(Vector2[] emojiCorners, Vector2[] corners)
+    Vector2 GetGuess(out int[] emojiIndices, out int[] imageIndices)
     {
         //TODO: Random take 3 or something
         int idE0 = 3;
@@ -77,7 +86,8 @@ public class EmojiProjection : MonoBehaviour {
         int bestB = 0;
         int bestC = 0;
         float bestVal = 0;
-        int l = corners.Length;
+        int l = imageCorners.Length;
+
         for (int a = 0; a < l; a++)
         {
             for (int b = 0; b < l; b++)
@@ -93,7 +103,7 @@ public class EmojiProjection : MonoBehaviour {
                     {
                         continue;
                     }
-                    float val = TriUniformSSSTest(e1, e2, e3, corners, a, b, c);
+                    float val = TriUniformSSSTest(e1, e2, e3, a, b, c);
                     if (val < bestVal || first)
                     {
                         bestVal = val;
@@ -106,20 +116,24 @@ public class EmojiProjection : MonoBehaviour {
             }
         }
 
+        emojiIndices = new int[3] { idE0, idE1, idE2 };
+
         if (first)
         {
+            imageIndices = new int[3] { -1, -1, -1 };
             return Vector2.zero;
         }
         else {
-            return (corners[bestA] + corners[bestB] + corners[bestC]) / 3f;
+            imageIndices = new int[3] { bestA, bestB, bestC };
+            return (imageCorners[bestA] + imageCorners[bestB] + imageCorners[bestC]) / 3f;
         }
     }
 
-    static float TriUniformSSSTest(float e1, float e2, float e3, Vector2[] imgCorners, int id0, int id1, int id2)
+    float TriUniformSSSTest(float e1, float e2, float e3, int id0, int id1, int id2)
     { 
 
-        Vector2 imgV1 = imgCorners[id1] - imgCorners[id0];
-        Vector2 imgV2 = imgCorners[id2] - imgCorners[id0];
+        Vector2 imgV1 = imageCorners[id1] - imageCorners[id0];
+        Vector2 imgV2 = imageCorners[id2] - imageCorners[id0];
 
         float i1 = imgV1.magnitude;
         float i2 = imgV1.magnitude;
@@ -198,7 +212,12 @@ public class EmojiProjection : MonoBehaviour {
         return newCorners;
     }
 
-    public float Score(Vector2[] translatedEmojiCorners, Vector2[] imageCorners)
+    public float Score(Vector2 offset, float scale, float angle)
+    {
+
+    }
+
+    public float Score()
     {
         float score = 0;
 
