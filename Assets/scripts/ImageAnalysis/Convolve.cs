@@ -328,10 +328,18 @@ namespace ImageAnalysis
         }
 
         public static void ZoomCropConvert(Func<int, int, int, int, Color[]> pixelFunc, int sourceWidth, int sourceHeight, ref double[,] target, int targetStride, float digitalZoom=0)
-        {            
-            int sourceStride;
+        {
             int targetHeight = target.GetLength(0) / targetStride;
-            float aspect = (float) targetStride / targetHeight;
+            Rect zoomRect = GetZoomRect(sourceWidth, sourceHeight, targetStride, targetHeight);
+            Color[] pixels = pixelFunc((int) zoomRect.position.x, (int) zoomRect.position.y, (int) zoomRect.size.x, (int) zoomRect.size.y);
+            SubSample(ref pixels, (int) zoomRect.size.x, (int) zoomRect.size.y, ref target, targetStride, targetHeight);
+
+        }
+
+        public static Rect GetZoomRect(int sourceWidth, int sourceHeight, int targetStride, int targetHeight)
+        {
+            int sourceStride;
+            float aspect = (float)targetStride / targetHeight;
             if (sourceWidth / (float)targetStride > sourceHeight / (float)targetHeight)
             {
                 sourceStride = Mathf.FloorToInt(aspect * sourceHeight);
@@ -341,11 +349,10 @@ namespace ImageAnalysis
                 sourceStride = sourceWidth;
 
             }
-            sourceStride = Mathf.Max(targetStride, Mathf.RoundToInt(targetStride + (sourceStride - targetStride) * digitalZoom));
-            int sourceRecalcHeight = Mathf.FloorToInt((float) sourceStride / aspect);            
-            Color[] pixels = pixelFunc((sourceWidth - sourceStride)/2, (sourceHeight - sourceRecalcHeight)/2, sourceStride, sourceRecalcHeight);
-            SubSample(ref pixels, sourceStride, sourceRecalcHeight, ref target, targetStride, targetHeight);
 
+            sourceStride = Mathf.Max(targetStride, Mathf.RoundToInt(targetStride + (sourceStride - targetStride) * digitalZoom));
+            int sourceRecalcHeight = Mathf.FloorToInt((float)sourceStride / aspect);
+            return new Rect((sourceWidth - sourceStride) / 2, (sourceHeight - sourceRecalcHeight) / 2, sourceStride, sourceRecalcHeight);
         }
 
     }
