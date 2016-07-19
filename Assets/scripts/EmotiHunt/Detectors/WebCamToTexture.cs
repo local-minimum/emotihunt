@@ -48,7 +48,8 @@ public class WebCamToTexture : Detector {
 
     protected override void _PostDetection()
     {
-        cornerTexture.ApplyTargetToTexture(tex);
+        //cornerTexture.ApplyTargetToTexture(tex);
+        ImageAnalysis.Convolve.Apply(ref I, size, tex);
     }
 
 }

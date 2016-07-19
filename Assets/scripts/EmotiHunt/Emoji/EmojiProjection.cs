@@ -16,6 +16,8 @@ public class EmojiProjection : MonoBehaviour {
     Vector2[] imageCorners;
     Vector2[] emojiCorners;
 
+    [SerializeField, Range(1, 100)]
+    int iterations = 5;
 
     void Awake()
     {
@@ -83,9 +85,9 @@ public class EmojiProjection : MonoBehaviour {
         float stepOrigo = 0.05f;
         float stepAngle = 30f;
         float stepScale = 0.1f;
-        float moveFraction = 0.5f;
+        float moveFraction = 0.05f;
 
-        while (i < 100)
+        while (i < iterations)
         {
             //This function and it's parameters (Vector2, Vector2, float, float) should find a max-score (0-1 value range)
             score = Score(emojiOrigo, imageOrigo, angle, scale);

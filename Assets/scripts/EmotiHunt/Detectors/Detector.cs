@@ -94,7 +94,7 @@ public abstract class Detector : MonoBehaviour {
 
     List<UICornerMarker> cornerMarkers = new List<UICornerMarker>();
 
-    protected float zoom = 0;
+    protected float zoom = 1;
     protected Vector2[] corners;
 
     MobileUI mobileUI;

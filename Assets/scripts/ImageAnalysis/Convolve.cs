@@ -330,7 +330,9 @@ namespace ImageAnalysis
         public static void ZoomCropConvert(Func<int, int, int, int, Color[]> pixelFunc, int sourceWidth, int sourceHeight, ref double[,] target, int targetStride, float digitalZoom=0)
         {
             int targetHeight = target.GetLength(0) / targetStride;
+
             Rect zoomRect = GetZoomRect(sourceWidth, sourceHeight, targetStride, targetHeight, digitalZoom);
+
             Color[] pixels = pixelFunc((int) zoomRect.position.x, (int) zoomRect.position.y, (int) zoomRect.size.x, (int) zoomRect.size.y);
             SubSample(ref pixels, (int) zoomRect.size.x, (int) zoomRect.size.y, ref target, targetStride, targetHeight);
 
@@ -338,8 +340,6 @@ namespace ImageAnalysis
 
         public static Rect GetZoomRect(int sourceWidth, int sourceHeight, int targetStride, int targetHeight, float digitalZoom=0)
         {
-            //TODO: it says -56 + 400 > 288, so fixfor smaller cam than tex
-            //TODO: out digitalZoom parhaps to say how much it got zoomed? That way rest of zoom could be pixelation
             int sourceStride;
             float aspect = (float)targetStride / targetHeight;
             if (sourceWidth / (float)targetStride > sourceHeight / (float)targetHeight)
@@ -352,8 +352,10 @@ namespace ImageAnalysis
 
             }
 
-            sourceStride = Mathf.Max(targetStride, Mathf.RoundToInt(targetStride + (sourceStride - targetStride) * digitalZoom));
-            int sourceRecalcHeight = Mathf.FloorToInt((float)sourceStride / aspect);
+            sourceStride = Mathf.Min(sourceWidth, Mathf.RoundToInt(targetStride / digitalZoom));
+            int sourceRecalcHeight = Mathf.Min(sourceHeight, Mathf.FloorToInt(sourceStride / aspect));
+            sourceStride = Mathf.FloorToInt(sourceRecalcHeight * aspect);
+
             return new Rect((sourceWidth - sourceStride) / 2, (sourceHeight - sourceRecalcHeight) / 2, sourceStride, sourceRecalcHeight);
         }
 
