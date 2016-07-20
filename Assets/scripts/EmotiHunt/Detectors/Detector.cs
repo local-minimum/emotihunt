@@ -90,6 +90,9 @@ public abstract class Detector : MonoBehaviour {
     [SerializeField]
     UICornerMarker cornerPrefab;
 
+    [SerializeField]
+    protected bool debug;
+
     List<Emoji> emojis = new List<Emoji>();
 
     List<UICornerMarker> cornerMarkers = new List<UICornerMarker>();

@@ -82,10 +82,10 @@ public class EmojiProjection : MonoBehaviour {
         Vector2 nextOrigo = imageOrigo;
         float nextAngle = angle;
         float nextScale = scale;
-        float stepOrigo = 0.05f;
+        float stepOrigo = 0.1f;
         float stepAngle = 30f;
         float stepScale = 0.1f;
-        float moveFraction = 0.05f;
+        float moveFraction = 0.85f;
 
         while (i < iterations)
         {
@@ -118,18 +118,18 @@ public class EmojiProjection : MonoBehaviour {
             Debug.Log("dT: " + dOrigoMagnitude + " dA: " + dAngle + " dS: " + dScale);
             if (absDeltaOrigoMagnitude > absDeltaAngle && absDeltaOrigoMagnitude > absDeltaScale)
             {
-                Debug.Log("Moving origo: " + dOrigo);
-                nextOrigo = imageOrigo - dOrigo.normalized * stepOrigo * moveFraction;
+                Debug.LogWarning("Moving origo: " + dOrigo);
+                nextOrigo = imageOrigo + dOrigo * stepOrigo * moveFraction;
             }
             else if (absDeltaAngle > absDeltaScale)
             {
                 Debug.Log("Moving angle: " + dAngle);
-                nextAngle = angle - Mathf.Sign(absDeltaAngle) * stepAngle * moveFraction;
+                nextAngle = angle + dAngle * stepAngle * moveFraction;
             }
             else
             {
                 Debug.Log("Moving scale: " + dScale);
-                nextScale = scale - Mathf.Sign(absDeltaScale) * stepScale * moveFraction;
+                nextScale = scale + dScale * stepScale * moveFraction;
             }
 
             prevScore = score;

@@ -50,6 +50,9 @@ public class WebCamToTexture : Detector {
     {
         //cornerTexture.ApplyTargetToTexture(tex);
         ImageAnalysis.Convolve.Apply(ref I, size, tex);
+        if (debug)
+        {
+            MarkCorners(corners, (tex.width - cornerTexture.ResponseStride) / 2, image.transform);
+        }
     }
-
 }
