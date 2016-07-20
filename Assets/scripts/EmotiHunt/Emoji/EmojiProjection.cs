@@ -165,7 +165,9 @@ public class EmojiProjection : MonoBehaviour {
         float score_S = Score(emojiOrigo, imageOrigo + new Vector2(0f, step), angle, scale);
         float score_SE = Score(emojiOrigo, imageOrigo + new Vector2(+step, step), angle, scale);
 
-        return new Vector2(2 * (score_E - score_W) + (score_NE - score_NW) + (score_SE - score_SW), 2 * (score_N - score_S) + (score_NW - score_SW) + (score_NE - score_SE));
+        return new Vector2(
+            2 * (score_E - score_W) + (score_NE - score_NW) + (score_SE - score_SW),
+            2 * (score_N - score_S) + (score_NW - score_SW) + (score_NE - score_SE)) / 4f;
     }
 
     void PlaceImage(Vector2 emojiOrigo, Vector2 imageOrigo, float angle, float scale)
