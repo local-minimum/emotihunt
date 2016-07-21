@@ -306,10 +306,10 @@ namespace ImageAnalysis
                 //Debug.Log("wR=" + widthRatio + " hR=" + heightRatio + " A=" + texAspect);
                 if (widthRatio > heightRatio)
                 {
-                    return new Vector2(v.x, v.y / widthRatio * heightRatio);
+                    return new Vector2(v.x, v.y / widthRatio * heightRatio) - imageTransform.pivot;
                 }
                 else {
-                    return new Vector2(v.x / heightRatio * widthRatio, v.y);
+                    return new Vector2(v.x / heightRatio * widthRatio, v.y) - imageTransform.pivot;
                 }
 
             } else

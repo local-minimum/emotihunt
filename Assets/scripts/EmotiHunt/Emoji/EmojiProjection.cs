@@ -85,7 +85,7 @@ public class EmojiProjection : MonoBehaviour {
         float stepOrigo = 0.05f;
         float stepAngle = 5f;
         float stepScale = 0.05f;
-        float moveFraction = 0.85f;
+        float moveFraction = 0.95f;
 
         while (i < iterations)
         {
@@ -375,7 +375,7 @@ public class EmojiProjection : MonoBehaviour {
 
         //TODO: maybe ensure no reuse of same corner twice?
         int lI = imageCorners.Length;
-        int lE = lE = translatedEmojiCorners.Length;
+        int lE = translatedEmojiCorners.Length;
         for (int idE=0; idE < lE; idE++)
         {
             float minVal = 0;
