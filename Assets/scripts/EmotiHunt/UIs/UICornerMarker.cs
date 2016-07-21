@@ -8,6 +8,7 @@ public class UICornerMarker : MonoBehaviour {
 
     Image sourceImage;
     Image selfImage;
+    Detector detector;
 
     public void Setup(Image sourceImage = null)
     {
@@ -18,6 +19,25 @@ public class UICornerMarker : MonoBehaviour {
             this.sourceImage = transform.parent.GetComponentInParent<Image>();
         }
         selfImage = GetComponent<Image>();
+
+        detector = this.sourceImage.GetComponent<Detector>();
+        if (detector)
+        {
+            detector.OnDetectorStatusChange += HandleDetectorChange;
+        }
+    }
+
+    void OnDisable()
+    {
+        detector.OnDetectorStatusChange -= HandleDetectorChange;
+    }
+
+    private void HandleDetectorChange(Detector screen, DetectorStatus status)
+    {
+        if (status == DetectorStatus.Filming || status == DetectorStatus.Inactive)
+        {
+            Showing = false;
+        }
     }
 
     public void SetCoordinate(Coordinate coordinate, int offset)
