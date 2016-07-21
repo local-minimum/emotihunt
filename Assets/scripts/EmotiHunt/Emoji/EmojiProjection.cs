@@ -164,7 +164,9 @@ public class EmojiProjection : MonoBehaviour {
         //Scale does not account for selfImage:Texture2d size ratio...should be OK if native size
 
         r.localScale = new Vector3(1f / scale, 1f / scale, 1f);
-        r.localPosition = new Vector3(imageOrigo.x * sourceImage.rectTransform.rect.width, imageOrigo.y * sourceImage.rectTransform.rect.height);
+        //r.localPosition = new Vector3(imageOrigo.x * sourceImage.rectTransform.rect.width, imageOrigo.y * sourceImage.rectTransform.rect.height);
+        r.localPosition = Math.TexRelativeVector2ToLocalPosition(imageOrigo, sourceImage);
+
         selfImage.enabled = true;
 
     }

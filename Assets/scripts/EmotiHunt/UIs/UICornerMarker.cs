@@ -29,8 +29,7 @@ public class UICornerMarker : MonoBehaviour {
 
     public void SetCoordinate(Vector2 v, int offset)
     { 
-        v = Math.TexRelativeVector2ToTransformRelative(v, sourceImage);
-        transform.localPosition = new Vector3(v.x * sourceImage.rectTransform.rect.width, v.y * sourceImage.rectTransform.rect.height);
+        transform.localPosition = Math.TexRelativeVector2ToLocalPosition(v, sourceImage);
         Showing = true;
     }
 

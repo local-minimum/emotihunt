@@ -317,5 +317,11 @@ namespace ImageAnalysis
                 return v;
             }
         }
+
+        public static Vector2 TexRelativeVector2ToLocalPosition(Vector2 v, Image img)
+        {
+            v = Math.TexRelativeVector2ToTransformRelative(v, img);
+            return new Vector3(v.x * img.rectTransform.rect.width, v.y * img.rectTransform.rect.height);
+        }
     }
 }
