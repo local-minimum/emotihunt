@@ -17,9 +17,6 @@ public class WebCamToTextureEmulator : Detector
     [SerializeField]
     Image detectionImage;
 
-    [SerializeField]
-    bool debug;
-
     Texture2D detectionTex;
 
     void Start()

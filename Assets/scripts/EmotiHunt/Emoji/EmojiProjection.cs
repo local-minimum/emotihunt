@@ -16,7 +16,7 @@ public class EmojiProjection : MonoBehaviour {
     Vector2[] imageCorners;
     Vector2[] emojiCorners;
 
-    [SerializeField, Range(1, 100)]
+    [SerializeField, Range(1, 1000)]
     int iterations = 5;
 
     void Awake()
@@ -82,9 +82,9 @@ public class EmojiProjection : MonoBehaviour {
         Vector2 nextOrigo = imageOrigo;
         float nextAngle = angle;
         float nextScale = scale;
-        float stepOrigo = 0.1f;
-        float stepAngle = 30f;
-        float stepScale = 0.1f;
+        float stepOrigo = 0.05f;
+        float stepAngle = 5f;
+        float stepScale = 0.05f;
         float moveFraction = 0.85f;
 
         while (i < iterations)
@@ -93,7 +93,7 @@ public class EmojiProjection : MonoBehaviour {
             score = Score(emojiOrigo, imageOrigo, angle, scale);
             Debug.Log(string.Format("Fit Score ({0}): {1}", i, score));
 
-            if (score < prevScore * (i + 100f) / 200f)
+            if (score < prevScore * ((float) i + iterations / 2f) / iterations)
             {
                 score = prevScore;
                 Debug.Log(string.Format("Final Score: {0}", score));
@@ -112,25 +112,10 @@ public class EmojiProjection : MonoBehaviour {
             float dAngle = GetAngleDelta(emojiOrigo, imageOrigo, angle, scale, stepAngle);
             float dScale = GetScaleDelta(emojiOrigo, imageOrigo, angle, scale, stepScale);
 
-            float absDeltaOrigoMagnitude = Mathf.Abs(dOrigoMagnitude);
-            float absDeltaAngle = Mathf.Abs(dAngle);
-            float absDeltaScale = Mathf.Abs(dScale);
             Debug.Log("dT: " + dOrigoMagnitude + " dA: " + dAngle + " dS: " + dScale);
-            if (absDeltaOrigoMagnitude > absDeltaAngle && absDeltaOrigoMagnitude > absDeltaScale)
-            {
-                Debug.LogWarning("Moving origo: " + dOrigo);
-                nextOrigo = imageOrigo + dOrigo * stepOrigo * moveFraction;
-            }
-            else if (absDeltaAngle > absDeltaScale)
-            {
-                Debug.Log("Moving angle: " + dAngle);
-                nextAngle = angle + dAngle * stepAngle * moveFraction;
-            }
-            else
-            {
-                Debug.Log("Moving scale: " + dScale);
-                nextScale = scale + dScale * stepScale * moveFraction;
-            }
+            nextOrigo = imageOrigo + dOrigo * stepOrigo * moveFraction;
+            nextAngle = angle + dAngle * stepAngle * moveFraction;
+            nextScale = scale + dScale * stepScale * moveFraction;
 
             prevScore = score;
             i++;
