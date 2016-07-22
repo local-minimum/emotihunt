@@ -41,7 +41,7 @@ public class UIEmojiSelector : MonoBehaviour {
     }
 
 
-    void Load(Emoji emoji)
+    public void Set(Emoji emoji)
     {
         gameObject.name = "Emoji: " + emoji.emojiName;
         this.emoji = emoji;

@@ -1,9 +1,15 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
+using System.Collections.Generic;
 
 public class UISelectionMode : MonoBehaviour {
 
+    [SerializeField] UIEmojiSelector selectorPrefab;
+    [SerializeField]
+    Transform selectorGrid;
+
+    List<UIEmojiSelector> selectors = new List<UIEmojiSelector>();
+    
     UIEmojiSelected[] selections;
     [SerializeField]
     string[] selectionTexts;
@@ -18,6 +24,15 @@ public class UISelectionMode : MonoBehaviour {
     {
         selections = GetComponentsInChildren<UIEmojiSelected>();
         SetCurrentSelectionText();
+        EmojiDB edb = new EmojiDB();
+        var db = edb.DB;
+        foreach (var kvp in db)
+        {
+            UIEmojiSelector selector = Instantiate(selectorPrefab);
+            selectors.Add(selector);
+            selector.transform.SetParent(selectorGrid);
+            selector.Set(kvp.Value);
+        }
     }
 
     public bool UIEmojiSelect(UIEmojiSelector btn)
