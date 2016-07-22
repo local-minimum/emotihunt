@@ -14,6 +14,7 @@ public class UIEmojiSelected : MonoBehaviour {
     {
         button = GetComponent<Button>();
         img = GetComponent<Image>();
+        Unset();
     }
 
     public bool Free
