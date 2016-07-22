@@ -70,7 +70,8 @@ public abstract class Detector : MonoBehaviour {
     public event EmojiMatchEvent OnMatchWithEmoji;
     public event DetectorStatusEvent OnDetectorStatusChange;
 
-    static string dbLocation = Application.dataPath + "/data/emoji.db";
+
+    static string dbLocation = Application.persistentDataPath + "/emoji.db";
 
     protected bool working = false;
     protected bool showingResults = false;
