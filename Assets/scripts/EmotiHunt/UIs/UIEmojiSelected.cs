@@ -40,7 +40,11 @@ public class UIEmojiSelected : MonoBehaviour {
 
     public void Shift(UIEmojiSelected other)
     {
-        other.Set(btn);
+        if (btn == null) { 
+            other.Unset();
+        }else {
+            other.Set(btn);
+        }
         Unset();
     }
 }
