@@ -14,7 +14,7 @@ public class MobileUI : MonoBehaviour {
 
     public event UIViewMode OnModeChange;
 
-    UIMode _viewMode = UIMode.Composing;
+    [SerializeField] UIMode _viewMode = UIMode.Composing;
 
     public UIMode viewMode
     {
