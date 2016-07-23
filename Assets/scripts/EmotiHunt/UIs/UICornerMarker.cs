@@ -29,7 +29,10 @@ public class UICornerMarker : MonoBehaviour {
 
     void OnDisable()
     {
-        detector.OnDetectorStatusChange -= HandleDetectorChange;
+        if (detector)
+        {
+            detector.OnDetectorStatusChange -= HandleDetectorChange;
+        }
     }
 
     private void HandleDetectorChange(Detector screen, DetectorStatus status)
