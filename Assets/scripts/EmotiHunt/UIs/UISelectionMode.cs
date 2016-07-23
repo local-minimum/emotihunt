@@ -55,9 +55,10 @@ public class UISelectionMode : MonoBehaviour {
     {
         for (int i=System.Array.IndexOf(selections, selected), l = selections.Length - 1; i<l; i++)
         {
-            selections[i + 1].Shift(selections[i]);
+            selections[i + 1].ShiftLeft(selections[i]);
         }
         selections[selections.Length - 1].Unset();
+        
         SetCurrentSelectionText();
     }
 

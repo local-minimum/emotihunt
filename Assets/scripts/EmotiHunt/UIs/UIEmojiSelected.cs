@@ -27,6 +27,10 @@ public class UIEmojiSelected : MonoBehaviour {
 
     public void Set(UIEmojiSelector btn)
     {
+        if (this.btn)
+        {
+            Unset();
+        }
         this.btn = btn;
         if (!btn.Selected)
         {
@@ -47,13 +51,15 @@ public class UIEmojiSelected : MonoBehaviour {
         button.interactable = false;
     }
 
-    public void Shift(UIEmojiSelected other)
+    public void ShiftLeft(UIEmojiSelected other)
     {
+                
         if (btn == null) { 
             other.Unset();
-        }else {
+        } else {
             other.Set(btn);
+            btn = null;
         }
-        Unset();
+
     }
 }
