@@ -70,6 +70,8 @@ public abstract class Detector : MonoBehaviour {
     public event EmojiMatchEvent OnMatchWithEmoji;
     public event DetectorStatusEvent OnDetectorStatusChange;
 
+    [SerializeField]
+    protected Image image;
 
     static string dbLocation = Application.persistentDataPath + "/emoji.db";
 
@@ -93,6 +95,11 @@ public abstract class Detector : MonoBehaviour {
 
     [SerializeField]
     protected bool debug;
+
+    [SerializeField]
+    EmojiProjection emojiProjectionPrefab;
+
+    List<EmojiProjection> projections = new List<EmojiProjection>();
 
     List<Emoji> emojis = new List<Emoji>();
 
@@ -126,14 +133,12 @@ public abstract class Detector : MonoBehaviour {
     {
         mobileUI = FindObjectOfType<MobileUI>();
         I = new double[size * size, 3];
-
-        //TODO: This is just debug-wise
-        emojis.Add(LoadEmojiDB().DB["sun"]);
-        Debug.Log(emojis[0].pixels.GetLength(0));
+        
     }
 
     void OnEnable()
     {
+        SetupEmojis();
         mobileUI.OnSnapImage += StartEdgeDetection;
         mobileUI.OnCloseAction += HandleCloseEvent;
         mobileUI.OnZoom += HandleZoom;
@@ -145,6 +150,27 @@ public abstract class Detector : MonoBehaviour {
         mobileUI.OnSnapImage -= StartEdgeDetection;
         mobileUI.OnCloseAction -= HandleCloseEvent;
         mobileUI.OnZoom -= HandleZoom;
+    }
+
+    void SetupEmojis()
+    {
+        emojis.Clear();
+        var db = LoadEmojiDB().DB;
+        int i = 0;
+        foreach (string emojiName in UISelectionMode.selectedEmojis)
+        {
+            emojis.Add(db[emojiName]);
+            if (projections.Count <= i)
+            {
+                var proj = Instantiate(emojiProjectionPrefab);
+                proj.transform.SetParent(transform);
+                proj.Setup(image);
+                proj.SetTrackingIndex(i);
+                projections.Add(proj);
+
+            }
+            i++;
+        }
     }
 
     void HandleZoom(float zoom)

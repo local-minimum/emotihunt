@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class EmojiProjection : MonoBehaviour {
 
-    public Image sourceImage;
+    Image sourceImage;
     Detector detector;
     Image selfImage;
     [SerializeField]
@@ -19,22 +19,37 @@ public class EmojiProjection : MonoBehaviour {
     [SerializeField, Range(1, 1000)]
     int iterations = 5;
 
-    void Awake()
+    public void SetTrackingIndex(int index)
     {
+        trackingEmojiIndex = index;
+
+    }
+
+    public void Setup(Image sourceImage)
+    {
+        this.sourceImage = sourceImage;
         detector = GetComponentInParent<Detector>();
         selfImage = GetComponent<Image>();
         selfImage.SetNativeSize();
-    }   
+        if (enabled)
+        {
+            OnEnable();
+        }
+    }
 
     void Start()
     {
+
         selfImage.enabled = false;
     }
 
     void OnEnable()
     {
-        detector.OnMatchWithEmoji += HandleNewCorners;
-        detector.OnDetectorStatusChange += HandleDetectorStatus;
+        if (detector)
+        {
+            detector.OnMatchWithEmoji += HandleNewCorners;
+            detector.OnDetectorStatusChange += HandleDetectorStatus;
+        }
     }
 
     void OnDisable()

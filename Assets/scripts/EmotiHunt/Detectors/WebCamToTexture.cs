@@ -6,7 +6,6 @@ using System;
 
 public class WebCamToTexture : Detector {
 
-    Image image;
     Texture2D tex;
 
     WebCamTexture camTex;

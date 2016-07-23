@@ -10,8 +10,6 @@ public class WebCamToTextureEmulator : Detector
     [SerializeField]
     Sprite sprite;
 
-    [SerializeField]
-    Image viewImage;
     Texture2D imageTex;
 
     [SerializeField]
@@ -22,7 +20,7 @@ public class WebCamToTextureEmulator : Detector
     void Start()
     {
 
-        imageTex = WebCamToTexture.SetupDynamicTexture(viewImage, size);
+        imageTex = WebCamToTexture.SetupDynamicTexture(image, size);
         detectionTex = WebCamToTexture.SetupDynamicTexture(detectionImage, size);
         cornerTexture = new HarrisCornerTexture(detectionTex);
         detectionImage.enabled = false;
@@ -60,7 +58,7 @@ public class WebCamToTextureEmulator : Detector
         detectionImage.enabled = true;
         if (debug)
         {
-            MarkCorners(corners, viewImage.transform);
+            MarkCorners(corners, image.transform);
         }
     }
 
