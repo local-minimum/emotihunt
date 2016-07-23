@@ -303,13 +303,15 @@ namespace ImageAnalysis
                 float widthRatio = (float)img.sprite.texture.width / (float)imageTransform.rect.width;
                 float heightRatio = (float)img.sprite.texture.height / (float) imageTransform.rect.height;
                 float texAspect = (float)img.sprite.texture.width / img.sprite.texture.height;
-                //Debug.Log("wR=" + widthRatio + " hR=" + heightRatio + " A=" + texAspect);
+                v -= imageTransform.pivot;
+                //Debug.Log(v + ", " + imageTransform.rect.size + ", wR=" + widthRatio + " hR=" + heightRatio + " A=" + texAspect);
+
                 if (widthRatio > heightRatio)
                 {
-                    return new Vector2(v.x, v.y / widthRatio * heightRatio) - imageTransform.pivot;
+                    return new Vector2(v.x, v.y / widthRatio * heightRatio);
                 }
                 else {
-                    return new Vector2(v.x / heightRatio * widthRatio, v.y) - imageTransform.pivot;
+                    return new Vector2(v.x / heightRatio * heightRatio, v.y);
                 }
 
             } else
