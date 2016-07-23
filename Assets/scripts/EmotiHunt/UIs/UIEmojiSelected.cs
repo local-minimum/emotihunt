@@ -28,12 +28,20 @@ public class UIEmojiSelected : MonoBehaviour {
     public void Set(UIEmojiSelector btn)
     {
         this.btn = btn;
+        if (!btn.Selected)
+        {
+            btn.Selected = true;
+        }
         img.sprite = btn.EmojiSprite;
         button.interactable = true;
     }
 
     public void Unset()
     {
+        if (btn)
+        {
+            btn.Selected = false;
+        }
         btn = null;
         img.sprite = emptySprite;
         button.interactable = false;
