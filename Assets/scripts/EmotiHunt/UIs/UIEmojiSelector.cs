@@ -46,16 +46,17 @@ public class UIEmojiSelector : MonoBehaviour {
         gameObject.name = "Emoji: " + emoji.emojiName;
         this.emoji = emoji;
         Selected = false;
-        tex = new Texture2D(75, 75);        
-        Convolve.Apply(ref emoji.pixels, emoji.pixelStride, tex);
+        tex = new Texture2D(75, 75);
         sprite = Sprite.Create(tex, new Rect(0, 0, 75, 75), Vector2.one * 0.5f);
         img.sprite = sprite;
+        Convolve.Apply(ref emoji.pixels, emoji.pixelStride, tex);
     }
 
-	// Use this for initialization
-	void Start () {
+
+	public void Setup () {
         btn = GetComponent<Button>();
         ui = GetComponentInParent<UISelectionMode>();
+        img = GetComponent<Image>();
 
     }
 

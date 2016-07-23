@@ -24,13 +24,15 @@ public class UISelectionMode : MonoBehaviour {
     {
         selections = GetComponentsInChildren<UIEmojiSelected>();
         SetCurrentSelectionText();
-        EmojiDB edb = new EmojiDB();
+        EmojiDB edb = Detector.LoadEmojiDB();   
         var db = edb.DB;
+        
         foreach (var kvp in db)
         {
             UIEmojiSelector selector = Instantiate(selectorPrefab);
             selectors.Add(selector);
             selector.transform.SetParent(selectorGrid);
+            selector.Setup();
             selector.Set(kvp.Value);
         }
     }

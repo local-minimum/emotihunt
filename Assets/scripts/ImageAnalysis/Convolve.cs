@@ -230,7 +230,7 @@ namespace ImageAnalysis
                 pixels[i].b = (float)I[i, 2];
                 if (hasAlpha)
                 {
-                    pixels[i].r = (float)I[i, 3];
+                    pixels[i].a = (float)I[i, 3];
                 }
                 else
                 {
@@ -238,9 +238,44 @@ namespace ImageAnalysis
                 }
 
             }
-
+            if (pixels.Length != tex.width * tex.height)
+            {
+                pixels = SubSample(ref pixels, stride, pixels.Length / stride, tex.width, tex.height);
+            }
             tex.SetPixels(pixels);
             tex.Apply();
+        }
+
+        public static Color[] SubSample(ref Color[] source, int sourceStride, int sourceHeight, int targetStride, int targetHeight)
+        {
+            Color[] target = new Color[targetHeight * targetStride];
+
+            int sourceY = 0;
+            int sourceX = 0;
+            float scaleY = (float)sourceHeight / targetHeight;
+            float scaleX = (float)sourceStride / targetStride;
+
+            int targetLength = target.Length;
+            int sourceLength = source.Length;
+
+            for (int targetY = 0; targetY < targetHeight; targetY++)
+            {
+                sourceY = Mathf.RoundToInt(targetY * scaleY);
+
+                for (int targetX = 0; targetX < targetHeight; targetX++)
+                {
+                    sourceX = Mathf.RoundToInt(targetX * scaleX);
+
+                    int sourcePos = sourceY * sourceStride + sourceX;
+                    int targetPos = targetY * targetStride + targetX;
+
+                    if (targetPos < targetLength && sourcePos < sourceLength)
+                    {
+                        target[targetPos] = source[sourcePos];
+                    }
+                }
+            }
+            return target;
         }
 
         public static void SubSample(ref Color[] source, int sourceStride, int sourceHeight, ref double[,] target, int targetStride, int targetHeight)
