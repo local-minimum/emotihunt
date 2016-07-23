@@ -82,7 +82,7 @@ public class EditorUI : MonoBehaviour {
             if (corners.Count <= i)
             {
                 corner = Instantiate(cornerPrefab);
-                corner.transform.SetParent(img.transform.parent);
+                corner.transform.SetParent(img.transform);
                 corner.Setup(img);
                 corners.Add(corner);
             } else
