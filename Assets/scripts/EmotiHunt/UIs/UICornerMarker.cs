@@ -47,10 +47,10 @@ public class UICornerMarker : MonoBehaviour {
     {
         //Debug.Log(coordinate.x + ", " + coordinate.y);
         Vector2 v = Math.CoordinateToTexRelativeVector2(coordinate, sourceImage.sprite.texture, offset);
-        SetCoordinate(v, offset);
+        SetCoordinate(v);
     }
 
-    public void SetCoordinate(Vector2 v, int offset)
+    public void SetCoordinate(Vector2 v)
     { 
         transform.localPosition = Math.TexRelativeVector2ToLocalPosition(v, sourceImage);
         Showing = true;

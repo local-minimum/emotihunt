@@ -60,7 +60,7 @@ public class WebCamToTextureEmulator : Detector
         detectionImage.enabled = true;
         if (debug)
         {
-            MarkCorners(corners, (imageTex.width - cornerTexture.ResponseStride) / 2, viewImage.transform);
+            MarkCorners(corners, viewImage.transform);
         }
     }
 

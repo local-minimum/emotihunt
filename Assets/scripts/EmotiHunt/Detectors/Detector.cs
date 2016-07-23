@@ -293,7 +293,7 @@ public abstract class Detector : MonoBehaviour {
         }
     }
 
-    protected void MarkCorners(Vector2[] coordinates, int offset, Transform parent)
+    protected void MarkCorners(Vector2[] coordinates, Transform parent)
     {
         UICornerMarker corner;
 
@@ -310,7 +310,7 @@ public abstract class Detector : MonoBehaviour {
             {
                 corner = cornerMarkers[i];
             }
-            corner.SetCoordinate(coordinates[i], offset);
+            corner.SetCoordinate(coordinates[i]);
         }
 
         for (int i = coordinates.Length, cL = cornerMarkers.Count; i < cL; i++)
