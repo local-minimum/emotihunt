@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public enum UIMode {Selecting, Composing, Gallery, Feed };
+public enum UIMode {Selecting, Composing, Gallery, Feed, Quitting };
 
 
 public class UIModal : MonoBehaviour {

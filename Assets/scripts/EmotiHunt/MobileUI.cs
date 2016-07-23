@@ -50,4 +50,35 @@ public class MobileUI : MonoBehaviour {
         if (OnZoom != null)
             OnZoom(slider.value);
     }
+
+    public void Play()
+    {
+        _viewMode = UIMode.Composing;
+        if (OnModeChange != null)
+            OnModeChange(_viewMode);
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (_viewMode == UIMode.Composing)
+            {
+                _viewMode = UIMode.Selecting;
+            } else if (_viewMode == UIMode.Selecting)
+            {
+                _viewMode = UIMode.Feed;
+
+            } else
+            {
+                _viewMode = UIMode.Quitting;
+            }
+            if (OnModeChange != null)
+            {
+                OnModeChange(_viewMode);
+            }
+            if (_viewMode == UIMode.Quitting)
+                QuitApp();
+        }
+    }
 }

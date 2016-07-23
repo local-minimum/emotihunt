@@ -102,4 +102,5 @@ public class UISelectionMode : MonoBehaviour {
         playButton.interactable = count > 1;
         //Debug.Log(string.Join(", ", selectedEmojis.ToArray()));
     }
+
 }
