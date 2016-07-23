@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class UISelectionMode : MonoBehaviour {
 
+    public static List<string> selectedEmojis = new List<string>();
+
     [SerializeField] UIEmojiSelector selectorPrefab;
     [SerializeField]
     Transform selectorGrid;
@@ -22,7 +24,7 @@ public class UISelectionMode : MonoBehaviour {
 
     void Start()
     {
-        selections = GetComponentsInChildren<UIEmojiSelected>();
+        selections = GetComponentsInChildren<UIEmojiSelected>();        
         SetCurrentSelectionText();
         EmojiDB edb = Detector.LoadEmojiDB();   
         var db = edb.DB;
@@ -44,6 +46,13 @@ public class UISelectionMode : MonoBehaviour {
             if (selections[i].Free)
             {
                 selections[i].Set(btn);
+                if (i >= selectedEmojis.Count)
+                {
+                    selectedEmojis.Add(btn.Name);
+                } else
+                {
+                    selectedEmojis[i] = btn.Name;
+                }
                 SetCurrentSelectionText();
                 return true;
             }
@@ -53,12 +62,22 @@ public class UISelectionMode : MonoBehaviour {
 
     public void RemoveSelection(UIEmojiSelected selected)
     {
+        bool moved = false;
         for (int i=System.Array.IndexOf(selections, selected), l = selections.Length - 1; i<l; i++)
         {
             selections[i + 1].ShiftLeft(selections[i]);
+            if (selectedEmojis.Count > i + 1)
+            {
+                selectedEmojis[i] = selectedEmojis[i + 1];
+            }
+            moved = true;
         }
-        selections[selections.Length - 1].Unset();
-        
+        if (moved)
+        {
+            selectedEmojis.RemoveAt(selectedEmojis.Count - 1);
+            selections[selections.Length - 1].Unset();
+        }
+
         SetCurrentSelectionText();
     }
 
@@ -81,5 +100,6 @@ public class UISelectionMode : MonoBehaviour {
         int count = CountSelections();
         text.text = selectionTexts[count];
         playButton.interactable = count > 1;
+        //Debug.Log(string.Join(", ", selectedEmojis.ToArray()));
     }
 }
