@@ -8,10 +8,11 @@ Get a rank.
 
 ## Current status
 
-First iteration object recognition is implemented.
+Need shipping data to do anything again.
 
 ### Issues
 
-* Mobile version doesn't work
-* Mobile scene badly scales (and rotates ?) detection points in relation to scene.
-
+* Mobile version untested
+* Quit is wack
+* Send data API.
+* Data need some version on it ?
