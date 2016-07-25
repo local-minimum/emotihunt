@@ -2,27 +2,8 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using ImageAnalysis.Textures;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Reflection;
+
 using System;
-
-public sealed class VersionDeserializationBinder : SerializationBinder
-{
-    public override Type BindToType(string assemblyName, string typeName)
-    {
-        if (!string.IsNullOrEmpty(assemblyName) && !string.IsNullOrEmpty(typeName))
-        {
-            Type typeToDeserialze = null;
-
-            assemblyName = Assembly.GetExecutingAssembly().FullName;
-            typeToDeserialze = Type.GetType(string.Format("{0}, {1}", typeName, assemblyName));
-            return typeToDeserialze;
-        }
-        return null;
-    }
-}
 
 public delegate void DetectorStatusEvent(Detector screen, DetectorStatus status);
 public delegate void EmojiMatchEvent(int index, Vector2[] corners, Emoji emoji);
@@ -72,8 +53,6 @@ public abstract class Detector : MonoBehaviour {
 
     [SerializeField]
     protected Image image;
-
-    static string dbLocation = Application.persistentDataPath + "/emoji.db";
 
     protected bool working = false;
     protected bool showingResults = false;
@@ -155,7 +134,7 @@ public abstract class Detector : MonoBehaviour {
     void SetupEmojis()
     {
         emojis.Clear();
-        var db = LoadEmojiDB().DB;
+        var db = EmojiDB.LoadEmojiDB().DB;
         int i = 0;
         foreach (string emojiName in UISelectionMode.selectedEmojis)
         {
@@ -217,65 +196,9 @@ public abstract class Detector : MonoBehaviour {
 
     public static void SetEmoji(Emoji emoji)
     {
-        EmojiDB db = LoadEmojiDB();
+        EmojiDB db = EmojiDB.LoadEmojiDB();
         db.Set(emoji);
-        SaveEmojiDB(db);
-    }
-
-    public static EmojiDB LoadEmojiDB()
-    {
-        try
-        {
-            Debug.Log(dbLocation);
-            Stream stream = File.Open(dbLocation, FileMode.Open);
-            BinaryFormatter bformatter = new BinaryFormatter();
-            bformatter.Binder = new VersionDeserializationBinder();
-            EmojiDB emojiDB;
-            try {
-                emojiDB = (EmojiDB)bformatter.Deserialize(stream);
-                stream.Close();
-            } catch (Exception ex) {
-
-                if (ex is ArgumentException || ex is EndOfStreamException)
-                {
-                    stream.Close();
-                    emojiDB = CreateEmojiDb();
-                } else
-                {
-                    throw;
-                }
-            }
-            return emojiDB;
-
-
-        }
-        catch (FileNotFoundException)
-        {
-            return CreateEmojiDb();
-        }
-    }
-
-    public static EmojiDB CreateEmojiDb()
-    {
-        EmojiDB db = new EmojiDB();
-        return db;
-    }
-
-
-    public static void SaveEmojiDB(Dictionary<string, Emoji> db)
-    {
-        var emojiDB = LoadEmojiDB();
-        emojiDB.DB = db;
-        SaveEmojiDB(emojiDB);
-    }
-
-    public static void SaveEmojiDB(EmojiDB db)
-    {
-        Stream stream = File.Open(dbLocation, FileMode.Create);
-        BinaryFormatter bformatter = new BinaryFormatter();
-        bformatter.Binder = new VersionDeserializationBinder();
-        bformatter.Serialize(stream, db);
-        stream.Close();
+        EmojiDB.SaveEmojiDB(db);
     }
 
     protected abstract void _EdgeDrawCalculation();

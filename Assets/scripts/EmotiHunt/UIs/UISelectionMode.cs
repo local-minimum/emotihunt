@@ -26,7 +26,7 @@ public class UISelectionMode : MonoBehaviour {
     {
         selections = GetComponentsInChildren<UIEmojiSelected>();        
         SetCurrentSelectionText();
-        EmojiDB edb = Detector.LoadEmojiDB();   
+        EmojiDB edb = EmojiDB.LoadEmojiDB();   
         var db = edb.DB;
         
         foreach (var kvp in db)

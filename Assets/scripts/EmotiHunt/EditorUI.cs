@@ -159,7 +159,7 @@ public class EditorUI : MonoBehaviour {
     
     public void Start()
     {
-        string names = Detector.LoadEmojiDB().Names;
+        string names = EmojiDB.LoadEmojiDB().Names;
         Debug.Log(string.IsNullOrEmpty(names) ? "Empty DB" : names);
         corners = GetComponentsInChildren<UICornerMarker>().ToList();
         foreach (UICornerMarker corner in corners)
