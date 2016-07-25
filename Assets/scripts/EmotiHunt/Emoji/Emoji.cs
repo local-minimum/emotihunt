@@ -151,8 +151,7 @@ public class EmojiDB: ISerializable
 
     public static EmojiDB CreateEmojiDb()
     {
-        EmojiDB db = new EmojiDB();
-        return db;
+        return new EmojiDB();        
     }
 
     public static void SaveEmojiDB(EmojiDB db)
@@ -181,6 +180,7 @@ public class EmojiDB: ISerializable
     {
         emojis = new List<Emoji>();
         checksum = null;
+        versionId = -1;
     }
 
     public EmojiDB(SerializationInfo info, StreamingContext ctxt)

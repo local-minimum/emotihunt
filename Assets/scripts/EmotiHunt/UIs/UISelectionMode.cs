@@ -36,6 +36,9 @@ public class UISelectionMode : MonoBehaviour {
         {
             yield return new WaitForSeconds(waitTime);
         }
+
+        Debug.Log(Detector.emojiDB.Version);
+
         var db = Detector.emojiDB.DB;
 
         foreach (var kvp in db)
