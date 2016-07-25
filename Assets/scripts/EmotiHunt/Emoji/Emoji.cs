@@ -220,7 +220,7 @@ public class EmojiDB: ISerializable
 
             while (!response.isDone)
             {
-                yield return "Updating emoijs...";
+                yield return string.Format("Updating emoijs {0:00%}", response.progress);
             }
 
             if (response.error != null && response.error != "")
@@ -235,16 +235,20 @@ public class EmojiDB: ISerializable
 
             try
             {
+
                 Stream s = GenerateStreamFromString(response.text);
                 
                 var newEmojiDB = (EmojiDB)bformatter.Deserialize(s);
                 Update(newEmojiDB);
-                updated = true;                
+                updated = true;    
+                            
             } catch (Exception)
             {
                 
                 Debug.LogWarning("Update failed");
+
             }
+
             yield return updated ? "Updated emojis!" : "Failed to update!";
         }
     }
