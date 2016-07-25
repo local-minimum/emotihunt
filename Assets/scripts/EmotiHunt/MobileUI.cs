@@ -19,6 +19,7 @@ public class MobileUI : MonoBehaviour {
     [SerializeField]
     Text statusTextField;
 
+    [SerializeField]
     Detector detector;
 
     public UIMode viewMode
@@ -27,8 +28,7 @@ public class MobileUI : MonoBehaviour {
     }
 
     void OnEnable()
-    {
-        detector = GetComponentInChildren<Detector>();
+    {        
         detector.OnProgressEvent += HandleProgressEvent;
     }
 
