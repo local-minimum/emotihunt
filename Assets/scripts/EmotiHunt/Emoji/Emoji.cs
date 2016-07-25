@@ -26,6 +26,15 @@ public class EmojiDB: ISerializable
 {
     List<Emoji> emojis = new List<Emoji>();
     string checksum;
+    long versionId;
+
+    public long Version
+    {
+        get
+        {
+            return versionId;
+        }
+    }
 
     public string Names
     {
@@ -42,6 +51,7 @@ public class EmojiDB: ISerializable
         db[emoji.emojiName] = emoji;
         emojis = db.Values.ToList();
         checksum = CalculateChecksum();
+        versionId++;
     }
 
     public Dictionary<string, Emoji> DB {
@@ -87,6 +97,8 @@ public class EmojiDB: ISerializable
     {
         info.AddValue("emojis", emojis);
         info.AddValue("checksum", checksum);
+        info.AddValue("versionId", versionId);
+
     }
 
     public EmojiDB()
@@ -99,6 +111,13 @@ public class EmojiDB: ISerializable
     {
         emojis = (List<Emoji>)info.GetValue("emojis", typeof(List<Emoji>));
         checksum = (string)info.GetValue("checksum", typeof(string));
+        try {
+            versionId = (long)info.GetValue("versionId", typeof(long));
+        } catch (SerializationException)
+        {
+            versionId = 0;
+        }
+
         if (!Valid)
             Debug.LogError("Data has been tampered with");
     }

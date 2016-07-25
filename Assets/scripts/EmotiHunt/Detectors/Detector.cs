@@ -226,6 +226,7 @@ public abstract class Detector : MonoBehaviour {
     {
         try
         {
+            Debug.Log(dbLocation);
             Stream stream = File.Open(dbLocation, FileMode.Open);
             BinaryFormatter bformatter = new BinaryFormatter();
             bformatter.Binder = new VersionDeserializationBinder();
