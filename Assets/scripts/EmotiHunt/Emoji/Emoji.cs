@@ -201,7 +201,7 @@ public class EmojiDB: ISerializable
     public IEnumerable<string> Update()
     {
         string baseURI = "http://212.85.82.101:5050";
-        var response = new WWW(WWW.EscapeURL(baseURI + "/emoji/version"));
+        var response = new WWW(baseURI + "/emoji/version");
         while (!response.isDone)
         {
             yield return "Checking version...";
@@ -209,7 +209,7 @@ public class EmojiDB: ISerializable
 
         if (response.error != "" && response.error != null)
         {
-            yield return "Error checking version";
+            yield return "Error checking version ";
             yield break;
         }
 
