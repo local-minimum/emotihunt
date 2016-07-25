@@ -94,9 +94,9 @@ public abstract class Detector : MonoBehaviour {
     MobileUI mobileUI;
 
     public static EmojiDB emojiDB;
-    bool ready = false;
+    static bool ready = false;
 
-    public bool Ready
+    public static bool Ready
     {
         get
         {
@@ -153,7 +153,7 @@ public abstract class Detector : MonoBehaviour {
         {
             OnProgressEvent(ProgressType.Detector, "Checking for updates", -1);
         }
-        Debug.Log("BIB");
+        
         yield return new WaitForSeconds(waitTime);
         emojis.Clear();
         emojiDB = EmojiDB.LoadEmojiDB();

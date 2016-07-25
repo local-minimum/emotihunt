@@ -30,6 +30,7 @@ public class MobileUI : MonoBehaviour {
     void OnEnable()
     {        
         detector.OnProgressEvent += HandleProgressEvent;
+        StartCoroutine(detector.SetupEmojis());
     }
 
     void OnDisable()

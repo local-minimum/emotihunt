@@ -210,6 +210,7 @@ public class EmojiDB: ISerializable
         if (response.error != "" && response.error != null)
         {
             yield return "Error checking version";
+            yield break;
         }
 
         long onlineVersion = long.Parse(response.text);
@@ -227,8 +228,6 @@ public class EmojiDB: ISerializable
                 yield return "Failed to download...";
                 yield break;
             }
-
-            //TODO: somehow read response.text as SerializationInfo
 
             BinaryFormatter bformatter = new BinaryFormatter();
             bformatter.Binder = new VersionDeserializationBinder();

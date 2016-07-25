@@ -24,11 +24,20 @@ public class UISelectionMode : MonoBehaviour {
 
     void Start()
     {
-        selections = GetComponentsInChildren<UIEmojiSelected>();        
-        SetCurrentSelectionText();
+        selections = GetComponentsInChildren<UIEmojiSelected>();
+        StartCoroutine(SetupSelectors());
+    }
 
+    public IEnumerator<WaitForSeconds> SetupSelectors()
+    {
+        float waitTime = 0.1f;
+
+        while (!Detector.Ready)
+        {
+            yield return new WaitForSeconds(waitTime);
+        }
         var db = Detector.emojiDB.DB;
-        
+
         foreach (var kvp in db)
         {
             UIEmojiSelector selector = Instantiate(selectorPrefab);
@@ -37,6 +46,8 @@ public class UISelectionMode : MonoBehaviour {
             selector.Setup();
             selector.Set(kvp.Value);
         }
+
+        SetCurrentSelectionText();
     }
 
     public bool UIEmojiSelect(UIEmojiSelector btn)
