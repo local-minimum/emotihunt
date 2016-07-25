@@ -56,10 +56,11 @@ public class MobileUI : MonoBehaviour {
         _viewMode = UIMode.Composing;
         if (OnModeChange != null)
             OnModeChange(_viewMode);
-    }
+    }    
 
     void Update()
     {
+        //TODO: A bit of logic conflict with same view having several modes.
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (_viewMode == UIMode.Composing)
@@ -77,6 +78,7 @@ public class MobileUI : MonoBehaviour {
             {
                 OnModeChange(_viewMode);
             }
+            Debug.Log(_viewMode);
             if (_viewMode == UIMode.Quitting)
                 QuitApp();
         }

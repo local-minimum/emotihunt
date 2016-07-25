@@ -183,6 +183,7 @@ public abstract class Detector : MonoBehaviour {
         if (showingResults)
         {
             CloseResults();
+            mobileUI.Play();
             return true;
         }
         return false;
