@@ -139,7 +139,6 @@ public class EmojiDB: ISerializable
                     throw;
                 }
             }
-            emojiDB.Update();
             return emojiDB;
 
 
@@ -154,14 +153,6 @@ public class EmojiDB: ISerializable
     {
         EmojiDB db = new EmojiDB();
         return db;
-    }
-
-
-    public static void SaveEmojiDB(Dictionary<string, Emoji> db)
-    {
-        var emojiDB = LoadEmojiDB();
-        emojiDB.DB = db;
-        SaveEmojiDB(emojiDB);
     }
 
     public static void SaveEmojiDB(EmojiDB db)
@@ -207,29 +198,55 @@ public class EmojiDB: ISerializable
             Debug.LogError("Data has been tampered with");
     }
 
-    public void Update()
+    public IEnumerable<string> Update()
     {
         string baseURI = "http://212.85.82.101:5050";
         var response = new WWW(WWW.EscapeURL(baseURI + "/emoji/version"));
+        while (!response.isDone)
+        {
+            yield return "Checking version...";
+        }
+
+        if (response.error != "" && response.error != null)
+        {
+            yield return "Error checking version";
+        }
+
         long onlineVersion = long.Parse(response.text);
         if (onlineVersion > versionId)
         {
             response = new WWW(baseURI + "/emoji/download");
+
+            while (!response.isDone)
+            {
+                yield return "Updating emoijs...";
+            }
+
+            if (response.error != null && response.error != "")
+            {
+                yield return "Failed to download...";
+                yield break;
+            }
+
             //TODO: somehow read response.text as SerializationInfo
 
             BinaryFormatter bformatter = new BinaryFormatter();
             bformatter.Binder = new VersionDeserializationBinder();
-            
+            bool updated = false;
+
             try
             {
                 Stream s = GenerateStreamFromString(response.text);
                 
                 var newEmojiDB = (EmojiDB)bformatter.Deserialize(s);
                 Update(newEmojiDB);
+                updated = true;                
             } catch (Exception)
             {
+                
                 Debug.LogWarning("Update failed");
-            }               
+            }
+            yield return updated ? "Updated emojis!" : "Failed to update!";
         }
     }
 

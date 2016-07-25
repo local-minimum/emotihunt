@@ -7,7 +7,10 @@ using System;
 
 public delegate void DetectorStatusEvent(Detector screen, DetectorStatus status);
 public delegate void EmojiMatchEvent(int index, Vector2[] corners, Emoji emoji);
+public delegate void ProgressEvent(ProgressType t, string message, float progress);
 
+
+public enum ProgressType {Detector, EmojiDB};
 public enum DetectorStatus {Filming, Detecting, ShowingResults, Inactive};
 
 [Serializable]
@@ -50,6 +53,7 @@ public abstract class Detector : MonoBehaviour {
 
     public event EmojiMatchEvent OnMatchWithEmoji;
     public event DetectorStatusEvent OnDetectorStatusChange;
+    public event ProgressEvent OnProgressEvent;
 
     [SerializeField]
     protected Image image;
@@ -89,6 +93,17 @@ public abstract class Detector : MonoBehaviour {
 
     MobileUI mobileUI;
 
+    public static EmojiDB emojiDB;
+    bool ready = false;
+
+    public bool Ready
+    {
+        get
+        {
+            return ready;
+        }
+    }
+
     public DetectorStatus Status
     {
         get
@@ -116,8 +131,7 @@ public abstract class Detector : MonoBehaviour {
     }
 
     void OnEnable()
-    {
-        SetupEmojis();
+    {       
         mobileUI.OnSnapImage += StartEdgeDetection;
         mobileUI.OnCloseAction += HandleCloseEvent;
         mobileUI.OnZoom += HandleZoom;
@@ -131,10 +145,29 @@ public abstract class Detector : MonoBehaviour {
         mobileUI.OnZoom -= HandleZoom;
     }
 
-    void SetupEmojis()
+    public IEnumerator<WaitForSeconds> SetupEmojis()
     {
+        ready = false;
+        float waitTime = 0.1f;
+        if (OnProgressEvent != null)
+        {
+            OnProgressEvent(ProgressType.Detector, "Checking for updates", -1);
+        }
+        Debug.Log("BIB");
+        yield return new WaitForSeconds(waitTime);
         emojis.Clear();
-        var db = EmojiDB.LoadEmojiDB().DB;
+        emojiDB = EmojiDB.LoadEmojiDB();
+
+        foreach(string status in emojiDB.Update())
+        {
+            if (OnProgressEvent != null)
+            {
+                OnProgressEvent(ProgressType.EmojiDB, status, -1);
+            }
+            yield return new WaitForSeconds(waitTime);
+        }
+
+        var db = emojiDB.DB;
         int i = 0;
         foreach (string emojiName in UISelectionMode.selectedEmojis)
         {
@@ -150,6 +183,12 @@ public abstract class Detector : MonoBehaviour {
             }
             i++;
         }
+        if (OnProgressEvent != null)
+        {
+            OnProgressEvent(ProgressType.EmojiDB, "Ready", 1);
+            OnProgressEvent(ProgressType.Detector, "Ready", 1);
+        }
+        ready = true;
     }
 
     void HandleZoom(float zoom)
@@ -195,10 +234,9 @@ public abstract class Detector : MonoBehaviour {
     }
 
     public static void SetEmoji(Emoji emoji)
-    {
-        EmojiDB db = EmojiDB.LoadEmojiDB();
-        db.Set(emoji);
-        EmojiDB.SaveEmojiDB(db);
+    {        
+        emojiDB.Set(emoji);
+        EmojiDB.SaveEmojiDB(emojiDB);
     }
 
     protected abstract void _EdgeDrawCalculation();

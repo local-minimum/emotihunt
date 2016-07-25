@@ -16,9 +16,31 @@ public class MobileUI : MonoBehaviour {
 
     [SerializeField] UIMode _viewMode = UIMode.Composing;
 
+    [SerializeField]
+    Text statusTextField;
+
+    Detector detector;
+
     public UIMode viewMode
     {
         get { return _viewMode; }
+    }
+
+    void OnEnable()
+    {
+        detector = GetComponentInChildren<Detector>();
+        detector.OnProgressEvent += HandleProgressEvent;
+    }
+
+    void OnDisable()
+    {
+        detector.OnProgressEvent -= HandleProgressEvent;
+    }
+
+    private void HandleProgressEvent(ProgressType t, string message, float progress)
+    {
+        statusTextField.text = message;
+        Debug.Log(message);
     }
 
     public void QuitApp()
