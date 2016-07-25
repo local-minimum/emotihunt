@@ -210,6 +210,7 @@ public class EmojiDB: ISerializable
         if (response.error != "" && response.error != null)
         {
             yield return "Error checking version ";
+            Debug.LogWarning(response.error);
             yield break;
         }
 
@@ -226,6 +227,7 @@ public class EmojiDB: ISerializable
             if (response.error != null && response.error != "")
             {
                 yield return "Failed to download...";
+                Debug.LogWarning(response.error);
                 yield break;
             }
 
@@ -235,7 +237,7 @@ public class EmojiDB: ISerializable
 
             try
             {
-
+                
                 Stream s = GenerateStreamFromString(response.text);
                 
                 var newEmojiDB = (EmojiDB)bformatter.Deserialize(s);
@@ -246,7 +248,7 @@ public class EmojiDB: ISerializable
             {
                 
                 Debug.LogWarning("Update failed");
-
+                throw;
             }
 
             yield return updated ? "Updated emojis!" : "Failed to update!";
@@ -256,8 +258,8 @@ public class EmojiDB: ISerializable
     public Stream GenerateStreamFromString(string s)
     {
         MemoryStream stream = new MemoryStream();
-        StreamWriter writer = new StreamWriter(stream);
-        writer.Write(s);
+        BinaryWriter writer = new BinaryWriter(stream);
+        writer.Write(Convert.FromBase64String(s));
         writer.Flush();
         stream.Position = 0;
         return stream;
