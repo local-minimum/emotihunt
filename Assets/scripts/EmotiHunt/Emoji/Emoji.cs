@@ -218,23 +218,6 @@ public class EmojiDB: ISerializable
         if (onlineVersion > versionId)
         {
 
-            /*
-            response = new WWW(baseURI + "/emoji/download");
-
-            while (!response.isDone)
-            {
-                yield return string.Format("Updating emoijs {0:00%}", response.progress);
-            }
-
-            if (response.error != null && response.error != "")
-            {
-                yield return "Failed to download...";
-                Debug.LogWarning(response.error);
-                yield break;
-            }
-            */
-
-
             yield return "Downloading data...";
             Stream s = GetDataStream(baseURI + "/emoji/download");
             BinaryFormatter bformatter = new BinaryFormatter();
@@ -266,12 +249,14 @@ public class EmojiDB: ISerializable
         Debug.Log("requesting: "  + URI);
         var request = System.Net.WebRequest.Create(URI);
         var response = request.GetResponse();
+        Debug.Log(string.Join(", ", response.Headers.AllKeys));
         return response.GetResponseStream();
         /*                   
         BinaryReader reader = new BinaryReader(response.GetResponseStream());
         MemoryStream stream = new MemoryStream();
         BinaryWriter writer = new BinaryWriter(stream);
         long size = 0;
+        //Until size is correct instead;
         while (reader.PeekChar() != -1)
         {
             
