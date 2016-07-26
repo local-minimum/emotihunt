@@ -6,7 +6,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Threading;
 
 public sealed class VersionDeserializationBinder : SerializationBinder
 {
@@ -219,15 +219,20 @@ public class EmojiDB: ISerializable
         {
 
             yield return "Downloading data...";
-            Stream s = GetDataStream(baseURI + "/emoji/download");
+
+            RequestStreamer sResponse = RequestStreamer.Create(baseURI + "/emoji/download");
+            
+            while (!sResponse.isDone)
+            {
+                yield return string.Format("Downloaded {0:00%}", sResponse.progress);
+            }
+            Stream s = sResponse.stream;
             BinaryFormatter bformatter = new BinaryFormatter();
             bformatter.Binder = new VersionDeserializationBinder();
             bool updated = false;
 
             try
             {
-                
-                //Stream s = GenerateStreamFromString(response.text);
                 
                 var newEmojiDB = (EmojiDB)bformatter.Deserialize(s);
                 Update(newEmojiDB);
@@ -240,34 +245,13 @@ public class EmojiDB: ISerializable
                 throw;
             }
 
+            if (updated)
+            {
+                yield return "Saving local copy";
+                SaveEmojiDB(this);
+            }
             yield return updated ? "Updated emojis!" : "Failed to update!";
         }
-    }
-
-    Stream GetDataStream(string URI)
-    {
-        Debug.Log("requesting: "  + URI);
-        var request = System.Net.WebRequest.Create(URI);
-        var response = request.GetResponse();
-        Debug.Log(string.Join(", ", response.Headers.AllKeys));
-        return response.GetResponseStream();
-        /*                   
-        BinaryReader reader = new BinaryReader(response.GetResponseStream());
-        MemoryStream stream = new MemoryStream();
-        BinaryWriter writer = new BinaryWriter(stream);
-        long size = 0;
-        //Until size is correct instead;
-        while (reader.PeekChar() != -1)
-        {
-            
-            writer.Write(reader.ReadByte());
-            size++;
-        }
-        Debug.Log(size);
-        writer.Flush();
-        stream.Position = 0;
-        return stream;
-        */
     }
 
     public Stream GenerateStreamFromString(string s)
@@ -289,5 +273,151 @@ public class EmojiDB: ISerializable
         if (!Valid)
             Debug.LogError("Data has been tampered with");
 
+    }
+}
+
+public class RequestStreamer
+{
+
+    Stream _stream;
+    public Stream stream {
+        get
+        {
+            return _stream;
+        }
+    }
+
+    int _size = -1;
+    public int size
+    {
+        get
+        {
+            return _size;
+        }
+    }
+
+    public bool isDone
+    {
+        get
+        {
+            return started && !thread.IsAlive;
+        }
+    }
+
+    public float progress
+    {
+        get
+        {
+            return _downloaded / _size;
+        }
+    }
+
+    int _downloaded;
+
+    float _pollFrequency = 0.04f;
+
+    string URI;
+    Thread thread;
+
+    public bool started
+    {
+        get
+        {
+            return thread != null;
+        }
+    }
+
+    private RequestStreamer()
+    {
+
+    }
+
+    Dictionary<string, string> _headers = new Dictionary<string, string>();
+
+    public Dictionary<string, string> headers
+    {
+        get
+        {
+            return _headers;
+        }
+    }
+
+    bool _abort = false;
+
+    public static RequestStreamer Create(string URI)
+    {
+        RequestStreamer obj = new RequestStreamer();
+        obj.URI = URI;
+        obj.thread = new Thread(new ThreadStart(obj.Worker));
+        
+        return obj;
+    }
+
+    public void Abort()
+    {
+        _abort = true;
+        if (_downloaded == 0)
+        {
+            thread.Abort();
+        }
+    }
+
+    void Worker()
+    {
+
+        string baseURI = "http://212.85.82.101:5050";
+        var t = new WWW(baseURI + "/emoji/version");       
+        
+        var request = System.Net.WebRequest.Create(URI);
+        var response = request.GetResponse();
+        
+        SetResponseHeaders(response.Headers);
+        SetContentLength();
+
+        if (size > 0)
+        {
+            BinaryReader reader = new BinaryReader(response.GetResponseStream());
+            _stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(_stream);
+            
+            int readSize = 4048;
+            byte[] buffer = new byte[readSize];
+            _downloaded = 0;
+            while (_downloaded < size || _abort)
+            {
+
+                int read = reader.Read(buffer, 0, readSize);
+                writer.Write(buffer, 0, read);
+                _downloaded += read;
+            }
+
+            writer.Flush();
+            _stream.Position = 0;
+
+        }
+        else
+        {
+            _stream = response.GetResponseStream();
+        }
+        
+
+    }
+
+    void SetContentLength(string key = "Content-Length")
+    {
+        if (headers.ContainsKey(key))
+        {
+            _size = int.Parse(headers[key]);
+        }
+        _size = -1;
+    }
+
+    void SetResponseHeaders(System.Net.WebHeaderCollection headers)
+    {
+        _headers.Clear();
+        foreach (string key in headers.AllKeys)
+        {
+            _headers[key] = headers.Get(key);
+        }
     }
 }
