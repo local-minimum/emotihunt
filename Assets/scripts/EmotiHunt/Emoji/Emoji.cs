@@ -118,20 +118,16 @@ public class EmojiDB: ISerializable
         {
             Debug.Log(dbLocation);
             Stream stream = File.Open(dbLocation, FileMode.Open);
-            BinaryFormatter bformatter = new BinaryFormatter();
-            bformatter.Binder = new VersionDeserializationBinder();
             EmojiDB emojiDB;
             try
             {
-                emojiDB = (EmojiDB)bformatter.Deserialize(stream);
-                stream.Close();
+                emojiDB = RequestStreamer.Deserialize<EmojiDB>(stream);
             }
             catch (Exception ex)
             {
 
                 if (ex is ArgumentException || ex is EndOfStreamException)
                 {
-                    stream.Close();
                     emojiDB = CreateEmojiDb();
                 }
                 else
@@ -224,17 +220,18 @@ public class EmojiDB: ISerializable
             
             while (!sResponse.isDone)
             {
+                Debug.Log("Progress: " + sResponse.progress);
+                Debug.Log("Downloaded: " + sResponse.downloaded);
+                Thread.Sleep(10);
                 yield return string.Format("Downloaded {0:00%}", sResponse.progress);
             }
-            Stream s = sResponse.stream;
-            BinaryFormatter bformatter = new BinaryFormatter();
-            bformatter.Binder = new VersionDeserializationBinder();
+
             bool updated = false;
 
             try
             {
                 
-                var newEmojiDB = (EmojiDB)bformatter.Deserialize(s);
+                EmojiDB newEmojiDB = sResponse.Deserialize<EmojiDB>();
                 Update(newEmojiDB);
                 updated = true;    
                             
@@ -296,11 +293,12 @@ public class RequestStreamer
         }
     }
 
+    bool _isDone = false;
     public bool isDone
     {
         get
         {
-            return started && !thread.IsAlive;
+            return _isDone;
         }
     }
 
@@ -308,13 +306,35 @@ public class RequestStreamer
     {
         get
         {
-            return _downloaded / _size;
+            if (downloading)
+            {
+                return (float)_downloaded / _size;
+            } else
+            {
+                return 0;
+            }
         }
     }
 
-    int _downloaded;
 
-    float _pollFrequency = 0.04f;
+    public bool downloading
+    {
+        get
+        {
+            return _downloaded < _size && _downloaded > 0;
+        }
+    }
+
+    int _downloaded = 0;
+    public int downloaded
+    {
+        get
+        {
+            return _downloaded;
+        }
+    }
+
+    int _pollFrequency = 40;
 
     string URI;
     Thread thread;
@@ -350,13 +370,14 @@ public class RequestStreamer
         obj.URI = URI;
         obj.thread = new Thread(new ThreadStart(obj.Worker));
         
+        obj.thread.Start();
         return obj;
     }
 
     public void Abort()
     {
         _abort = true;
-        if (_downloaded == 0)
+        if (!downloading)
         {
             thread.Abort();
         }
@@ -364,9 +385,6 @@ public class RequestStreamer
 
     void Worker()
     {
-
-        string baseURI = "http://212.85.82.101:5050";
-        var t = new WWW(baseURI + "/emoji/version");       
         
         var request = System.Net.WebRequest.Create(URI);
         var response = request.GetResponse();
@@ -389,6 +407,7 @@ public class RequestStreamer
                 int read = reader.Read(buffer, 0, readSize);
                 writer.Write(buffer, 0, read);
                 _downloaded += read;
+
             }
 
             writer.Flush();
@@ -399,8 +418,7 @@ public class RequestStreamer
         {
             _stream = response.GetResponseStream();
         }
-        
-
+        _isDone = true;
     }
 
     void SetContentLength(string key = "Content-Length")
@@ -408,6 +426,9 @@ public class RequestStreamer
         if (headers.ContainsKey(key))
         {
             _size = int.Parse(headers[key]);
+        } else
+        {
+            Debug.LogWarning(string.Join(", ", headers.Keys.ToArray()));
         }
         _size = -1;
     }
@@ -419,5 +440,37 @@ public class RequestStreamer
         {
             _headers[key] = headers.Get(key);
         }
+    }
+
+    public T Deserialize<T>()
+    {
+        return Deserialize<T>(stream);
+    }
+
+    public static T Deserialize<T>(Stream stream)
+    {
+        T obj;
+        BinaryFormatter bformatter = new BinaryFormatter();
+        bformatter.Binder = new VersionDeserializationBinder();
+        
+        try
+        {
+
+            obj = (T)bformatter.Deserialize(stream);
+            CloseIOStream(stream);
+
+        }
+        catch (Exception)
+        {
+            CloseIOStream(stream);
+            throw;                
+        }
+
+        return obj;
+    }
+
+    static void CloseIOStream(Stream s)
+    {
+        s.Close();
     }
 }
