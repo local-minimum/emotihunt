@@ -47,13 +47,16 @@ public class MobileUI : MonoBehaviour {
     public void QuitApp()
     {
         bool caught = false;
-        foreach(CloseEvent e in OnCloseAction.GetInvocationList())
+        if (OnCloseAction != null)
         {
-            if (e())
+            foreach (CloseEvent e in OnCloseAction.GetInvocationList())
             {
-                caught = true;
-            }
+                if (e())
+                {
+                    caught = true;
+                }
 
+            }
         }
 
         if (!caught)
