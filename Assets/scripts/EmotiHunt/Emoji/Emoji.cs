@@ -222,7 +222,7 @@ public class EmojiDB: ISerializable
             {
                 Debug.Log("Progress: " + sResponse.progress);
                 Debug.Log("Downloaded: " + sResponse.downloaded);
-                Thread.Sleep(10);
+                
                 yield return string.Format("Downloaded {0:00%}", sResponse.progress);
             }
 
@@ -321,7 +321,7 @@ public class RequestStreamer
     {
         get
         {
-            return _downloaded < _size && _downloaded > 0;
+            return _downloaded < _size && _downloaded >= 0;
         }
     }
 
@@ -370,7 +370,7 @@ public class RequestStreamer
         obj.URI = URI;
         obj.thread = new Thread(new ThreadStart(obj.Worker));
         
-        obj.thread.Start();
+        //obj.thread.Start();
         return obj;
     }
 
@@ -381,6 +381,11 @@ public class RequestStreamer
         {
             thread.Abort();
         }
+    }
+
+    public void Poll()
+    {
+       
     }
 
     void Worker()
@@ -394,17 +399,18 @@ public class RequestStreamer
 
         if (size > 0)
         {
-            BinaryReader reader = new BinaryReader(response.GetResponseStream());
+            var _responseStream = response.GetResponseStream();
             _stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(_stream);
             
             int readSize = 4048;
             byte[] buffer = new byte[readSize];
             _downloaded = 0;
-            while (_downloaded < size || _abort)
-            {
 
-                int read = reader.Read(buffer, 0, readSize);
+            while (downloading && !_abort)
+            {
+                
+                int read = _responseStream.Read(buffer, 0, readSize);
                 writer.Write(buffer, 0, read);
                 _downloaded += read;
 
@@ -426,10 +432,7 @@ public class RequestStreamer
         if (headers.ContainsKey(key))
         {
             _size = int.Parse(headers[key]);
-        } else
-        {
-            Debug.LogWarning(string.Join(", ", headers.Keys.ToArray()));
-        }
+        } 
         _size = -1;
     }
 
