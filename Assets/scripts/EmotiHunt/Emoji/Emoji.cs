@@ -217,6 +217,8 @@ public class EmojiDB: ISerializable
         long onlineVersion = long.Parse(response.text);
         if (onlineVersion > versionId)
         {
+
+            /*
             response = new WWW(baseURI + "/emoji/download");
 
             while (!response.isDone)
@@ -230,7 +232,11 @@ public class EmojiDB: ISerializable
                 Debug.LogWarning(response.error);
                 yield break;
             }
+            */
 
+
+            yield return "Downloading data...";
+            Stream s = GetDataStream(baseURI + "/emoji/download");
             BinaryFormatter bformatter = new BinaryFormatter();
             bformatter.Binder = new VersionDeserializationBinder();
             bool updated = false;
@@ -238,7 +244,7 @@ public class EmojiDB: ISerializable
             try
             {
                 
-                Stream s = GenerateStreamFromString(response.text);
+                //Stream s = GenerateStreamFromString(response.text);
                 
                 var newEmojiDB = (EmojiDB)bformatter.Deserialize(s);
                 Update(newEmojiDB);
@@ -253,6 +259,30 @@ public class EmojiDB: ISerializable
 
             yield return updated ? "Updated emojis!" : "Failed to update!";
         }
+    }
+
+    Stream GetDataStream(string URI)
+    {
+        Debug.Log("requesting: "  + URI);
+        var request = System.Net.WebRequest.Create(URI);
+        var response = request.GetResponse();
+        return response.GetResponseStream();
+        /*                   
+        BinaryReader reader = new BinaryReader(response.GetResponseStream());
+        MemoryStream stream = new MemoryStream();
+        BinaryWriter writer = new BinaryWriter(stream);
+        long size = 0;
+        while (reader.PeekChar() != -1)
+        {
+            
+            writer.Write(reader.ReadByte());
+            size++;
+        }
+        Debug.Log(size);
+        writer.Flush();
+        stream.Position = 0;
+        return stream;
+        */
     }
 
     public Stream GenerateStreamFromString(string s)
