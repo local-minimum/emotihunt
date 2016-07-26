@@ -135,6 +135,7 @@ public abstract class Detector : MonoBehaviour {
         mobileUI.OnSnapImage += StartEdgeDetection;
         mobileUI.OnCloseAction += HandleCloseEvent;
         mobileUI.OnZoom += HandleZoom;
+        SetupProjections();
     }
 
 
@@ -143,6 +144,26 @@ public abstract class Detector : MonoBehaviour {
         mobileUI.OnSnapImage -= StartEdgeDetection;
         mobileUI.OnCloseAction -= HandleCloseEvent;
         mobileUI.OnZoom -= HandleZoom;
+    }
+
+    void SetupProjections()
+    {
+        var db = emojiDB.DB;
+        int i = 0;
+        foreach (string emojiName in UISelectionMode.selectedEmojis)
+        {
+            emojis.Add(db[emojiName]);
+            if (projections.Count <= i)
+            {
+                var proj = Instantiate(emojiProjectionPrefab);
+                proj.transform.SetParent(transform);
+                proj.Setup(image);
+                proj.SetTrackingIndex(i);
+                projections.Add(proj);
+
+            }
+            i++;
+        }
     }
 
     public IEnumerator<WaitForSeconds> SetupEmojis()
@@ -167,22 +188,6 @@ public abstract class Detector : MonoBehaviour {
             yield return new WaitForSeconds(waitTime);
         }
 
-        var db = emojiDB.DB;
-        int i = 0;
-        foreach (string emojiName in UISelectionMode.selectedEmojis)
-        {
-            emojis.Add(db[emojiName]);
-            if (projections.Count <= i)
-            {
-                var proj = Instantiate(emojiProjectionPrefab);
-                proj.transform.SetParent(transform);
-                proj.Setup(image);
-                proj.SetTrackingIndex(i);
-                projections.Add(proj);
-
-            }
-            i++;
-        }
         if (OnProgressEvent != null)
         {
             OnProgressEvent(ProgressType.EmojiDB, "Ready", 1);

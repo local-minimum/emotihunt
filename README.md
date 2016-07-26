@@ -8,11 +8,10 @@ Get a rank.
 
 ## Current status
 
-Need shipping data to do anything again.
+Maybe prototype works
 
 ### Issues
 
-* Mobile version untested
-* Quit is wack
-* Send data API.
-* Data need some version on it ?
+* Server crashes too frequently
+* Something strange when selecting 2 then going back and selecting 3.
+Not shouwing correct emoji on 3rd.
