@@ -220,10 +220,11 @@ public class EmojiDB: ISerializable
             
             while (!sResponse.isDone)
             {
-                Debug.Log("Progress: " + sResponse.progress);
-                Debug.Log("Downloaded: " + sResponse.downloaded);
-                
-                yield return string.Format("Downloaded {0:00%}", sResponse.progress);
+                Debug.Log(sResponse.Poll());
+                if (sResponse.downloading)
+                {
+                    yield return string.Format("Downloaded {0:00%}", sResponse.progress);
+                }
             }
 
             bool updated = false;
@@ -272,6 +273,9 @@ public class EmojiDB: ISerializable
 
     }
 }
+
+
+public enum RequestStreamerState{Setup, Initiated, Downloading, FailsafeDownloading, Terminated};
 
 public class RequestStreamer
 {
@@ -337,15 +341,6 @@ public class RequestStreamer
     int _pollFrequency = 40;
 
     string URI;
-    Thread thread;
-
-    public bool started
-    {
-        get
-        {
-            return thread != null;
-        }
-    }
 
     private RequestStreamer()
     {
@@ -363,39 +358,44 @@ public class RequestStreamer
     }
 
     bool _abort = false;
+    
 
     public static RequestStreamer Create(string URI)
     {
         RequestStreamer obj = new RequestStreamer();
         obj.URI = URI;
-        obj.thread = new Thread(new ThreadStart(obj.Worker));
-        
-        //obj.thread.Start();
+        obj.worker = obj.Worker();
         return obj;
     }
 
     public void Abort()
     {
-        _abort = true;
-        if (!downloading)
+
+    }
+
+    public RequestStreamerState Poll()
+    {
+        if (worker.MoveNext())
         {
-            thread.Abort();
+            return worker.Current;
         }
+        return RequestStreamerState.Terminated;        
     }
 
-    public void Poll()
-    {
-       
-    }
+    IEnumerator<RequestStreamerState> worker;
 
-    void Worker()
+    IEnumerator<RequestStreamerState> Worker()
     {
-        
+
+        yield return RequestStreamerState.Initiated;
+
         var request = System.Net.WebRequest.Create(URI);
         var response = request.GetResponse();
-        
+
         SetResponseHeaders(response.Headers);
         SetContentLength();
+
+        yield return RequestStreamerState.Setup;
 
         if (size > 0)
         {
@@ -403,7 +403,7 @@ public class RequestStreamer
             _stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(_stream);
             
-            int readSize = 4048;
+            int readSize = 1024*128;
             byte[] buffer = new byte[readSize];
             _downloaded = 0;
 
@@ -413,6 +413,7 @@ public class RequestStreamer
                 int read = _responseStream.Read(buffer, 0, readSize);
                 writer.Write(buffer, 0, read);
                 _downloaded += read;
+                yield return RequestStreamerState.Downloading;
 
             }
 
@@ -422,18 +423,16 @@ public class RequestStreamer
         }
         else
         {
+            yield return RequestStreamerState.FailsafeDownloading;
             _stream = response.GetResponseStream();
         }
+
         _isDone = true;
     }
 
     void SetContentLength(string key = "Content-Length")
     {
-        if (headers.ContainsKey(key))
-        {
-            _size = int.Parse(headers[key]);
-        } 
-        _size = -1;
+        _size = int.Parse(headers[key]);
     }
 
     void SetResponseHeaders(System.Net.WebHeaderCollection headers)
