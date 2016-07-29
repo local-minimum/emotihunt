@@ -45,6 +45,7 @@ public class Emoji
 public class EmojiDB: ISerializable
 {
 
+    float requestTimeOut = 5f;
     static string dbLocation = Application.persistentDataPath + "/emoji.db";
 
     List<Emoji> emojis = new List<Emoji>();
@@ -198,14 +199,15 @@ public class EmojiDB: ISerializable
     {
         string baseURI = "http://212.85.82.101:5050";
         var response = new WWW(baseURI + "/emoji/version");
-        while (!response.isDone)
+        float t = Time.timeSinceLevelLoad;  
+        while (!response.isDone && Time.timeSinceLevelLoad - t < requestTimeOut)
         {
             yield return "Checking version...";
         }
 
-        if (response.error != "" && response.error != null)
+        if (response.error != "" && response.error != null || !response.isDone)
         {
-            yield return "Error checking version ";
+            yield return "Error checking version";
             Debug.LogWarning(response.error);
             yield break;
         }
@@ -337,8 +339,6 @@ public class RequestStreamer
             return _downloaded;
         }
     }
-
-    int _pollFrequency = 40;
 
     string URI;
 
