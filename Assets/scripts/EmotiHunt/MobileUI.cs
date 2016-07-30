@@ -67,6 +67,7 @@ public class MobileUI : MonoBehaviour {
 
     public void Snap()
     {
+        HandleProgressEvent(ProgressType.Detector, "Processing (takes a while)", 0);
         if (OnSnapImage != null)
             OnSnapImage();
     }

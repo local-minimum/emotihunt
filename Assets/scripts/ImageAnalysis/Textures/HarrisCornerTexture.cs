@@ -22,7 +22,7 @@ namespace ImageAnalysis.Textures
         int filt2stride;
         int filt2height;
         double kappa = 0.1;
-        double threshold = 0.7;
+        double threshold = 0.3;
         
         public double Kappa { get { return kappa; } set { kappa = Mathf.Clamp((float) value, 0.04f, 0.15f);} }
         public double Threshold { get { return threshold;} set { threshold = Mathf.Clamp01((float) value); } }

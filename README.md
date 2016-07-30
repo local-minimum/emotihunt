@@ -8,7 +8,7 @@ Get a rank.
 
 ## Current status
 
-Maybe prototype works
+Happens there are unused corners but they still appear
 
 ### Issues
 
