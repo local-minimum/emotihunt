@@ -106,12 +106,12 @@ public class EmojiProjection : MonoBehaviour {
         {
             //This function and it's parameters (Vector2, Vector2, float, float) should find a max-score (0-1 value range)
             score = Score(emojiOrigo, imageOrigo, angle, scale);
-            Debug.Log(string.Format("Fit Score ({0}): {1}", i, score));
+            //Debug.Log(string.Format("Fit Score ({0}): {1}", i, score));
 
             if (score < prevScore * ((float) i + iterations / 2f) / iterations)
             {
                 score = prevScore;
-                Debug.Log(string.Format("Final Score: {0}", score));
+                //Debug.Log(string.Format("Final Score: {0}", score));
 
                 break;
             } else
@@ -127,7 +127,7 @@ public class EmojiProjection : MonoBehaviour {
             float dAngle = GetAngleDelta(emojiOrigo, imageOrigo, angle, scale, stepAngle);
             float dScale = GetScaleDelta(emojiOrigo, imageOrigo, angle, scale, stepScale);
 
-            Debug.Log("dT: " + dOrigoMagnitude + " dA: " + dAngle + " dS: " + dScale);
+            //Debug.Log("dT: " + dOrigoMagnitude + " dA: " + dAngle + " dS: " + dScale);
             nextOrigo = imageOrigo + dOrigo * stepOrigo * moveFraction;
             nextAngle = angle + dAngle * stepAngle * moveFraction;
             nextScale = scale + dScale * stepScale * moveFraction;

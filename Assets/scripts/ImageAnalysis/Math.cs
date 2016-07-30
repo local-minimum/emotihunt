@@ -94,15 +94,15 @@ namespace ImageAnalysis
             while (n < N)
             {
                 bool filled = false;
-                bool anyColor = false;
+                bool outOfColor = true;
                 for (int color = 0; color < colors; color++)
                 {
                     if (taken[color] >= size)
                     {
                         continue;
                     }
-                    anyColor = true;
-                    if (!filled || arr[n, color] * System.Math.Pow(aheadCost, taken[indx[n, 1]] - taken[color]) > arr[indx[n, 0], indx[n, 1]])
+                    outOfColor = false;
+                    if (!filled || arr[taken[color], color] * System.Math.Pow(aheadCost, taken[indx[n, 1]] - taken[color]) > arr[indx[n, 0], indx[n, 1]])
                     {
                         if (passesDistanceCheck(sortOrder[taken[color], color], stride, minDistance, ref indx, n))
                         {
@@ -121,9 +121,20 @@ namespace ImageAnalysis
                     taken[indx[n, 1]]++;
                     n++;
                 }
-                if (!anyColor)
+                if (outOfColor)
                 {
-                    break;
+                    Debug.Log(string.Format("Ran out of corners for some reason! n={0}, N={1}, size={2}, colors={3}", n , N, size, colors));
+                    for (int color = 0; color < colors; color++)
+                    {
+                        Debug.Log(string.Format("Color {0} got {1} taken.", color, taken[color]));
+                    }
+                    int[,] truncatedIndx = new int[n, 2];
+                    for (int i=0; i< n; i++)
+                    {
+                        truncatedIndx[i, 0] = indx[i, 0];
+                        truncatedIndx[i, 1] = indx[i, 1];
+                    }
+                    return truncatedIndx;
                 }
             }
             return indx;

@@ -83,7 +83,7 @@ public class GameCamToTexture : MonoBehaviour {
         int[,] corners = overlayTexture.LocateCorners(nCorners, aheadCost, minDistance);
         int responseStride = overlayTexture.ResponseStride;
 
-        for (int i=0; i<nCorners; i++)
+        for (int i=0, l=corners.GetLength(0); i<l; i++)
         {
             /*if (i < 3)
             {
