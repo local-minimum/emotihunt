@@ -117,8 +117,26 @@ public class EmojiDB: ISerializable
     {
         try
         {
-            Debug.Log(dbLocation);
-            Stream stream = File.Open(dbLocation, FileMode.Open);
+            Stream stream = null;
+            try
+            {
+               stream = File.Open(dbLocation, FileMode.Open);
+            }  catch (Exception ex)
+            {
+                if (ex is UnauthorizedAccessException)
+                {
+                    Debug.LogWarning(string.Format("Access to '{0}' not allowed", dbLocation));
+                } else if (ex is FileNotFoundException)
+                {
+                    Debug.LogWarning(string.Format("File '{0}' not found", dbLocation));
+                } else if (ex is IOException) {
+                    Debug.LogWarning(string.Format("I/O exception accessing '{0}'", dbLocation));
+                } else {
+                    throw;
+                }
+                return CreateEmojiDb();
+            }
+
             EmojiDB emojiDB;
             try
             {
@@ -140,9 +158,12 @@ public class EmojiDB: ISerializable
 
 
         }
-        catch (FileNotFoundException)
+        catch (Exception ex)
         {
+
+            Debug.LogWarning(string.Format("Unexpected exception loading '{0}', {1}", dbLocation, ex));
             return CreateEmojiDb();
+
         }
     }
 

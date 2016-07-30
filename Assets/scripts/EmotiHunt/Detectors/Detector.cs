@@ -66,7 +66,7 @@ public abstract class Detector : MonoBehaviour {
     [SerializeField, Range(100, 800)]
     protected int size = 400;
 
-    [SerializeField, Range(10, 42)]
+    [SerializeField, Range(10, 200)]
     int nCorners = 24;
     [SerializeField, Range(1, 4)]
     float aheadCost = 1.4f;
@@ -169,17 +169,22 @@ public abstract class Detector : MonoBehaviour {
     public IEnumerator<WaitForSeconds> SetupEmojis()
     {
         ready = false;
-        float waitTime = 0.05f;
+        float waitTime = 0.02f;
         if (OnProgressEvent != null)
         {
-            OnProgressEvent(ProgressType.Detector, "Checking for updates", -1);
+            OnProgressEvent(ProgressType.Detector, "Loading local data", -1);
         }
         
         yield return new WaitForSeconds(waitTime);
         emojis.Clear();
         emojiDB = EmojiDB.LoadEmojiDB();
 
-        foreach(string status in emojiDB.Update())
+        if (OnProgressEvent != null)
+        {
+            OnProgressEvent(ProgressType.Detector, "Checking for update", -1);
+        }
+
+        foreach (string status in emojiDB.Update())
         {
             if (OnProgressEvent != null)
             {
