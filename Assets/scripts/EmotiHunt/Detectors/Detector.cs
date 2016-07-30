@@ -11,7 +11,7 @@ public delegate void ProgressEvent(ProgressType t, string message, float progres
 
 
 public enum ProgressType {Detector, EmojiDB};
-public enum DetectorStatus {Filming, Detecting, ShowingResults, Inactive};
+public enum DetectorStatus {Filming, DetectingSetup, ReadyToDetect, Detecting, ShowingResults, Inactive, PreIniting, Initing};
 
 [Serializable]
 public struct Vector2Surrogate {
@@ -104,21 +104,18 @@ public abstract class Detector : MonoBehaviour {
         }
     }
 
+    DetectorStatus status = DetectorStatus.PreIniting;
+
     public DetectorStatus Status
     {
         get
         {
-            if (!enabled) {
+            if (!enabled)
+            {
                 return DetectorStatus.Inactive;
-            } else if (working)
-            {
-                return DetectorStatus.Detecting;
-            } else if (showingResults)
-            {
-                return DetectorStatus.ShowingResults;
-            } else
-            {
-                return DetectorStatus.Filming;
+            }
+            else {
+                return status;
             }
         }
     }
@@ -168,6 +165,7 @@ public abstract class Detector : MonoBehaviour {
 
     public IEnumerator<WaitForSeconds> SetupEmojis()
     {
+        status = DetectorStatus.Initing;
         ready = false;
         float waitTime = 0.02f;
         if (OnProgressEvent != null)
@@ -184,11 +182,11 @@ public abstract class Detector : MonoBehaviour {
             OnProgressEvent(ProgressType.Detector, "Checking for update", -1);
         }
 
-        foreach (string status in emojiDB.Update())
+        foreach (string statusText in emojiDB.Update())
         {
             if (OnProgressEvent != null)
             {
-                OnProgressEvent(ProgressType.EmojiDB, status, -1);
+                OnProgressEvent(ProgressType.EmojiDB, statusText, -1);
             }
             yield return new WaitForSeconds(waitTime);
         }
@@ -199,6 +197,7 @@ public abstract class Detector : MonoBehaviour {
             OnProgressEvent(ProgressType.Detector, "Ready", 1);
         }
         ready = true;
+        status = DetectorStatus.Filming;
     }
 
     void HandleZoom(float zoom)
@@ -232,7 +231,7 @@ public abstract class Detector : MonoBehaviour {
     {
         if (!working)
         {
-            StartCoroutine(Detect());
+            StartCoroutine(DetectSetup());
         }
     }
     public static Texture2D SetupDynamicTexture(Image image, int size)
@@ -252,21 +251,58 @@ public abstract class Detector : MonoBehaviour {
     protected abstract void _EdgeDrawCalculation();
     protected abstract void _PostDetection();
 
-    protected IEnumerator<WaitForEndOfFrame> Detect()
+    protected IEnumerator<WaitForEndOfFrame> DetectSetup()
     {
         working = true;
+        status = DetectorStatus.DetectingSetup;
         if (OnDetectorStatusChange != null)
         {
-            OnDetectorStatusChange(this, DetectorStatus.Detecting);
+            OnDetectorStatusChange(this, status);
         }
 
         yield return new WaitForEndOfFrame();
         _EdgeDrawCalculation();
 
+        status = DetectorStatus.ReadyToDetect;
+        if (OnDetectorStatusChange != null)
+        {
+            OnDetectorStatusChange(this, status);
+        }
+
+    }
+
+    protected IEnumerator<WaitForSeconds> Detect() {
+        float delta = 0.01f;
+
+        status = DetectorStatus.Detecting;
+        if (OnDetectorStatusChange != null)
+        {
+            OnDetectorStatusChange(this, status);
+        }
+
+        if (OnProgressEvent != null)
+        {
+            OnProgressEvent(ProgressType.Detector, "Detecting cornernress", 0.05f);
+        }
+
         GetCornerDetection();
+
+        if (OnProgressEvent != null)
+        {
+            OnProgressEvent(ProgressType.Detector, "Detecting corners", 0.1f);
+        }
+        yield return new WaitForSeconds(delta);
+
         GetCorners();
 
+        if (OnProgressEvent != null)
+        {
+            OnProgressEvent(ProgressType.Detector, "Detecting post-process", 0.9f);
+        }
+        yield return new WaitForSeconds(delta);
         _PostDetection();
+
+        yield return new WaitForSeconds(delta);
         working = false;
 
     }

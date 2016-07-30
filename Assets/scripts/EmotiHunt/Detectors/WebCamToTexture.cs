@@ -2,7 +2,6 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using ImageAnalysis.Textures;
-using System;
 
 public class WebCamToTexture : Detector {
 
@@ -19,16 +18,33 @@ public class WebCamToTexture : Detector {
         tex = SetupDynamicTexture(image, size);
         cornerTexture = new HarrisCornerTexture(tex);
 	}
-	
-	void Update () {
-        if (!camTex.isPlaying)
-        {
-            camTex.Play();
-        }
-        if (!working && !showingResults && camTex.didUpdateThisFrame)
-            StartCoroutine(ShowCurrentImage());
-	}
 
+    void Update()
+    {
+        DetectorStatus status = Status;
+        Debug.Log(status);
+        if (status == DetectorStatus.Inactive || status == DetectorStatus.Initing || status == DetectorStatus.PreIniting)
+        {
+            return;
+        }
+
+        else if (status == DetectorStatus.Filming)
+        {
+            if (!camTex.isPlaying)
+            {
+                camTex.Play();
+            }
+
+            if (!working && !showingResults && camTex.didUpdateThisFrame)
+                StartCoroutine(ShowCurrentImage());
+
+        }
+
+        else if (status == DetectorStatus.ReadyToDetect)
+        {
+            StartCoroutine(Detect());
+        }
+    }
 
     IEnumerator<WaitForEndOfFrame> ShowCurrentImage()
     {
