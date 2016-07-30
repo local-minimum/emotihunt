@@ -169,7 +169,7 @@ public abstract class Detector : MonoBehaviour {
     public IEnumerator<WaitForSeconds> SetupEmojis()
     {
         ready = false;
-        float waitTime = 0.1f;
+        float waitTime = 0.05f;
         if (OnProgressEvent != null)
         {
             OnProgressEvent(ProgressType.Detector, "Checking for updates", -1);

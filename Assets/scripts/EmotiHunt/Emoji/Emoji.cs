@@ -6,7 +6,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Net;
 
 public sealed class VersionDeserializationBinder : SerializationBinder
 {
@@ -203,17 +203,19 @@ public class EmojiDB: ISerializable
         }
         string baseURI = "http://212.85.82.101:5050";
         RequestStreamer response = RequestStreamer.Create(baseURI + "/emoji/version");
-        float t = Time.timeSinceLevelLoad;  
-        while (!response.isDone && Time.timeSinceLevelLoad - t < requestTimeOut)
+        string waitChars = "-/|\\";
+        int charPos = -1;
+        while (!response.isDone)
         {
-            Debug.Log(response.Poll());
-            yield return "Checking version...";
+            Debug.Log(response.Poll().ToString());
+            charPos++;
+            yield return "Checking version: " + waitChars[charPos % waitChars.Length];
         }
 
-        if (!response.isDone)
+        if (!response.Success)
         {
             yield return "Error checking version";
-            Debug.LogWarning("Connection error");
+            Debug.LogWarning("Connection error: " + response.errors);
             yield break;
         }
         Debug.Log(response.text);
@@ -283,10 +285,12 @@ public class EmojiDB: ISerializable
 }
 
 
-public enum RequestStreamerState{Setup, Initiated, Downloading, FailsafeDownloading, Terminated};
+public enum RequestStreamerState{Setup, Initiated, Downloading, FailsafeDownloading, Terminated, Error, Waiting};
 
 public class RequestStreamer
 {
+
+    public static bool debugMode = true;
 
     Stream _stream;
     public Stream stream {
@@ -348,6 +352,23 @@ public class RequestStreamer
 
     string URI;
 
+    string _errors = "";
+
+    public string errors
+    {
+
+        get { return _errors; }
+
+    }
+
+    public bool Success
+    {
+        get
+        {
+            return isDone && _errors == "";
+        }
+    }
+
     private RequestStreamer()
     {
 
@@ -366,13 +387,13 @@ public class RequestStreamer
     bool _abort = false;
     
 
-    public static RequestStreamer Create(string URI)
+    public static RequestStreamer Create(string URI, float timeOut=5f)
     {
         RequestStreamer obj = new RequestStreamer();
         obj.URI = URI;
-        obj.worker = obj.Worker();
+        obj.worker = obj.Worker(timeOut);
         return obj;
-    }
+    }   
 
     public void Abort()
     {
@@ -390,19 +411,31 @@ public class RequestStreamer
 
     IEnumerator<RequestStreamerState> worker;
 
-    IEnumerator<RequestStreamerState> Worker()
+    IEnumerator<RequestStreamerState> Worker(float timeOut)
     {
 
         yield return RequestStreamerState.Initiated;
 
-        var request = System.Net.WebRequest.Create(URI);
-        var response = request.GetResponse();
+        var request = WebRequest.Create(URI);
+        WebResponse response = null;
+        try {
+            response = request.GetResponse();
+        } catch (Exception) {
+            _errors = string.Format("{0} connection refused", URI);
+            _isDone = true;
+        }
+
+        if (_isDone)
+        {
+            yield return RequestStreamerState.Error;
+            yield break;
+        }
 
         SetResponseHeaders(response.Headers);
         SetContentLength();
 
         yield return RequestStreamerState.Setup;
-
+        float startTime = Time.realtimeSinceStartup;
         if (size > 0)
         {
             var _responseStream = response.GetResponseStream();
@@ -418,8 +451,22 @@ public class RequestStreamer
                 
                 int read = _responseStream.Read(buffer, 0, readSize);
                 writer.Write(buffer, 0, read);
-                _downloaded += read;
-                yield return RequestStreamerState.Downloading;
+                if (read > 0)
+                {
+                    startTime = Time.realtimeSinceStartup;
+                    _downloaded += read;
+                    yield return RequestStreamerState.Downloading;
+                }
+                else if (Time.realtimeSinceStartup - startTime > timeOut)
+                {
+                    _errors = "Connection time out";
+                    _abort = true;
+                    yield return RequestStreamerState.Error;
+                } else
+                {
+                    yield return RequestStreamerState.Waiting;
+                }
+
 
             }
 
@@ -441,7 +488,7 @@ public class RequestStreamer
         _size = int.Parse(headers[key]);
     }
 
-    void SetResponseHeaders(System.Net.WebHeaderCollection headers)
+    void SetResponseHeaders(WebHeaderCollection headers)
     {
         _headers.Clear();
         foreach (string key in headers.AllKeys)
@@ -452,7 +499,13 @@ public class RequestStreamer
 
     public T Deserialize<T>()
     {
-        return Deserialize<T>(stream);
+        if (Success)
+        {
+            return Deserialize<T>(stream);
+        } else
+        {
+            throw new Exception("Failed while downloading");
+        }
     }
 
     public string text
@@ -465,7 +518,7 @@ public class RequestStreamer
                 return new StreamReader(_stream).ReadToEnd();
             } else
             {
-                throw new Exception("Content not downloaded");
+                throw new Exception("Failed while downloading");
             }
         }
     }
