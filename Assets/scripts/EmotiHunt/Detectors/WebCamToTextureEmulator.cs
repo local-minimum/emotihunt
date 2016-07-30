@@ -29,7 +29,7 @@ public class WebCamToTextureEmulator : Detector
 
     void Update()
     {
-        if (!working && !showingResults)
+        if (Status == DetectorStatus.Filming)
         {
             StartCoroutine(ShowCurrentImage());
         }

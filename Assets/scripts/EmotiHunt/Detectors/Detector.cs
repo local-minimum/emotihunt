@@ -59,7 +59,6 @@ public abstract class Detector : MonoBehaviour {
     protected Image image;
 
     protected bool working = false;
-    protected bool showingResults = false;
     protected HarrisCornerTexture cornerTexture;
     protected double[,] I;
 
@@ -207,7 +206,7 @@ public abstract class Detector : MonoBehaviour {
 
     bool HandleCloseEvent()
     {
-        if (showingResults)
+        if (Status == DetectorStatus.ShowingResults)
         {
             CloseResults();
             mobileUI.Play();
@@ -224,7 +223,7 @@ public abstract class Detector : MonoBehaviour {
             OnDetectorStatusChange(this, DetectorStatus.Filming);
         }
 
-        showingResults = false;
+        status = DetectorStatus.Filming;
     }
 
     void StartEdgeDetection()
@@ -261,6 +260,12 @@ public abstract class Detector : MonoBehaviour {
         }
 
         yield return new WaitForEndOfFrame();
+
+        if (OnProgressEvent != null)
+        {
+            OnProgressEvent(ProgressType.Detector, "Processing image", 0.0f);
+        }
+
         _EdgeDrawCalculation();
 
         status = DetectorStatus.ReadyToDetect;
@@ -282,14 +287,14 @@ public abstract class Detector : MonoBehaviour {
 
         if (OnProgressEvent != null)
         {
-            OnProgressEvent(ProgressType.Detector, "Detecting cornernress", 0.05f);
+            OnProgressEvent(ProgressType.Detector, "Detecting cornernress", 0.4f);
         }
 
         GetCornerDetection();
 
         if (OnProgressEvent != null)
         {
-            OnProgressEvent(ProgressType.Detector, "Detecting corners", 0.1f);
+            OnProgressEvent(ProgressType.Detector, "Detecting corners", 0.8f);
         }
         yield return new WaitForSeconds(delta);
 
@@ -302,7 +307,16 @@ public abstract class Detector : MonoBehaviour {
         yield return new WaitForSeconds(delta);
         _PostDetection();
 
+        if (OnProgressEvent != null)
+        {
+            OnProgressEvent(ProgressType.Detector, "Detection done!", 1f);
+        }
         yield return new WaitForSeconds(delta);
+        status = DetectorStatus.ShowingResults;
+        if (OnDetectorStatusChange != null)
+        {
+            OnDetectorStatusChange(this, status);
+        }
         working = false;
 
     }
@@ -321,11 +335,7 @@ public abstract class Detector : MonoBehaviour {
     void GetCornerDetection()
     {
         cornerTexture.Convolve(I, size);
-        showingResults = true;
-        if (OnDetectorStatusChange != null)
-        {
-            OnDetectorStatusChange(this, DetectorStatus.ShowingResults);
-        }
+
     }
 
     protected void MarkCorners(Vector2[] coordinates, Transform parent)

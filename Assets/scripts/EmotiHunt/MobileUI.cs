@@ -17,6 +17,9 @@ public class MobileUI : MonoBehaviour {
     [SerializeField] UIMode _viewMode = UIMode.Composing;
 
     [SerializeField]
+    Image progressImage;
+
+    [SerializeField]
     Text statusTextField;
 
     [SerializeField]
@@ -41,6 +44,7 @@ public class MobileUI : MonoBehaviour {
     private void HandleProgressEvent(ProgressType t, string message, float progress)
     {
         statusTextField.text = message;
+        progressImage.fillAmount = progress;
         Debug.Log(message);
     }
 
