@@ -80,6 +80,7 @@ public class MobileUI : MonoBehaviour {
     public void Play()
     {
         _viewMode = UIMode.Composing;
+        HandleProgressEvent(ProgressType.Detector, "Compose image", 0);
         if (OnModeChange != null)
             OnModeChange(_viewMode);
     }    
