@@ -169,7 +169,7 @@ public abstract class Detector : MonoBehaviour {
         float waitTime = 0.02f;
         if (OnProgressEvent != null)
         {
-            OnProgressEvent(ProgressType.Detector, "Loading local data", -1);
+            OnProgressEvent(ProgressType.Detector, "Loading local data", 0);
         }
         
         yield return new WaitForSeconds(waitTime);
@@ -178,14 +178,14 @@ public abstract class Detector : MonoBehaviour {
 
         if (OnProgressEvent != null)
         {
-            OnProgressEvent(ProgressType.Detector, "Checking for update", -1);
+            OnProgressEvent(ProgressType.Detector, "Checking for update", 0);
         }
 
-        foreach (string statusText in emojiDB.Update())
+        foreach (var kvp in emojiDB.Update())
         {
             if (OnProgressEvent != null)
             {
-                OnProgressEvent(ProgressType.EmojiDB, statusText, -1);
+                OnProgressEvent(ProgressType.EmojiDB, kvp.Key, kvp.Value);
             }
             yield return new WaitForSeconds(waitTime);
         }

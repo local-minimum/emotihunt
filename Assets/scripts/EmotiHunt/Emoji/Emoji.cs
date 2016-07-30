@@ -198,7 +198,7 @@ public class EmojiDB: ISerializable
             Debug.LogError("Data has been tampered with");
     }
 
-    public IEnumerable<string> Update()
+    public IEnumerable<KeyValuePair<string, float>> Update()
     {
         if (Debug.isDebugBuild)
         {
@@ -212,12 +212,12 @@ public class EmojiDB: ISerializable
         {
             Debug.Log(response.Poll().ToString());
             charPos++;
-            yield return "Checking version: " + waitChars[charPos % waitChars.Length];
+            yield return new KeyValuePair<string, float>("Checking version: " + waitChars[charPos % waitChars.Length], 0);
         }
 
         if (!response.Success)
         {
-            yield return "Error checking version";
+            yield return new KeyValuePair<string, float>("Error checking version", 0);
             Debug.LogWarning("Connection error: " + response.errors);
             yield break;
         }
@@ -227,7 +227,7 @@ public class EmojiDB: ISerializable
         if (onlineVersion > versionId)
         {
 
-            yield return "Downloading data...";
+            yield return new KeyValuePair<string, float>("Downloading data...", 0);
 
             response = RequestStreamer.Create(baseURI + "/emoji/download");
             
@@ -236,7 +236,7 @@ public class EmojiDB: ISerializable
                 Debug.Log(response.Poll());
                 if (response.downloading)
                 {
-                    yield return string.Format("Downloaded {0:00%}", response.progress);
+                    yield return new KeyValuePair<string, float>(string.Format("Downloaded {0:00%}", response.progress), response.progress);
                 }
             }
 
@@ -258,10 +258,10 @@ public class EmojiDB: ISerializable
 
             if (updated)
             {
-                yield return "Saving local copy";
+                yield return new KeyValuePair<string, float>("Saving local copy", 1);
                 SaveEmojiDB(this);
             }
-            yield return updated ? "Updated emojis!" : "Failed to update!";
+            yield return new KeyValuePair<string, float>(updated ? "Updated emojis!" : "Failed to update!", 1);
         }
     }
 
