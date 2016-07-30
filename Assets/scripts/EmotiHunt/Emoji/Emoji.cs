@@ -197,20 +197,26 @@ public class EmojiDB: ISerializable
 
     public IEnumerable<string> Update()
     {
+        if (Debug.isDebugBuild)
+        {
+            Debug.developerConsoleVisible = true;            
+        }
         string baseURI = "http://212.85.82.101:5050";
-        var response = new WWW(baseURI + "/emoji/version");
+        RequestStreamer response = RequestStreamer.Create(baseURI + "/emoji/version");
         float t = Time.timeSinceLevelLoad;  
         while (!response.isDone && Time.timeSinceLevelLoad - t < requestTimeOut)
         {
+            Debug.Log(response.Poll());
             yield return "Checking version...";
         }
 
-        if (response.error != "" && response.error != null || !response.isDone)
+        if (!response.isDone)
         {
             yield return "Error checking version";
-            Debug.LogWarning(response.error);
+            Debug.LogWarning("Connection error");
             yield break;
         }
+        Debug.Log(response.text);
 
         long onlineVersion = long.Parse(response.text);
         if (onlineVersion > versionId)
@@ -218,14 +224,14 @@ public class EmojiDB: ISerializable
 
             yield return "Downloading data...";
 
-            RequestStreamer sResponse = RequestStreamer.Create(baseURI + "/emoji/download");
+            response = RequestStreamer.Create(baseURI + "/emoji/download");
             
-            while (!sResponse.isDone)
+            while (!response.isDone)
             {
-                Debug.Log(sResponse.Poll());
-                if (sResponse.downloading)
+                Debug.Log(response.Poll());
+                if (response.downloading)
                 {
-                    yield return string.Format("Downloaded {0:00%}", sResponse.progress);
+                    yield return string.Format("Downloaded {0:00%}", response.progress);
                 }
             }
 
@@ -234,7 +240,7 @@ public class EmojiDB: ISerializable
             try
             {
                 
-                EmojiDB newEmojiDB = sResponse.Deserialize<EmojiDB>();
+                EmojiDB newEmojiDB = response.Deserialize<EmojiDB>();
                 Update(newEmojiDB);
                 updated = true;    
                             
@@ -447,6 +453,21 @@ public class RequestStreamer
     public T Deserialize<T>()
     {
         return Deserialize<T>(stream);
+    }
+
+    public string text
+    {
+        get
+        {
+            if (isDone)
+            {
+                _stream.Position = 0;
+                return new StreamReader(_stream).ReadToEnd();
+            } else
+            {
+                throw new Exception("Content not downloaded");
+            }
+        }
     }
 
     public static T Deserialize<T>(Stream stream)
