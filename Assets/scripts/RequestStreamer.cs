@@ -206,6 +206,8 @@ public class RequestStreamer
                     _errors = "Connection time out";
                     _abort = true;
                     yield return RequestStreamerState.Error;
+                    _isDone = true;
+                    yield break;
                 }
                 else
                 {
