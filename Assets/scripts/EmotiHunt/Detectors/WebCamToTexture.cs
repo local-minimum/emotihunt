@@ -22,7 +22,7 @@ public class WebCamToTexture : Detector {
     void Update()
     {
         DetectorStatus status = Status;
-        Debug.Log(status);
+
         if (status == DetectorStatus.Inactive || status == DetectorStatus.Initing || status == DetectorStatus.PreIniting)
         {
             return;

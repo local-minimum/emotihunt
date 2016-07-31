@@ -48,8 +48,36 @@ public class MobileUI : MonoBehaviour {
         Debug.Log(message);
     }
 
-    public void QuitApp()
+    public void Abort()
     {
+        if (_viewMode == UIMode.Composing)
+        {
+            _viewMode = UIMode.Selecting;
+        } else if (_viewMode == UIMode.CompositionPhoto)
+        {
+            _viewMode = UIMode.Composing;
+        }
+        else if (_viewMode == UIMode.Selecting)
+        {
+            _viewMode = UIMode.Feed;
+
+        }
+        else
+        {
+            _viewMode = UIMode.Quitting;
+        }
+
+        if (OnModeChange != null)
+        {
+            OnModeChange(_viewMode);
+        }
+
+        if (_viewMode == UIMode.Quitting)
+            QuitApp();
+    }
+
+    void QuitApp() { 
+
         bool caught = false;
         if (OnCloseAction != null)
         {
@@ -95,24 +123,7 @@ public class MobileUI : MonoBehaviour {
         //TODO: A bit of logic conflict with same view having several modes.
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (_viewMode == UIMode.Composing)
-            {
-                _viewMode = UIMode.Selecting;
-            } else if (_viewMode == UIMode.Selecting)
-            {
-                _viewMode = UIMode.Feed;
-
-            } else
-            {
-                _viewMode = UIMode.Quitting;
-            }
-            if (OnModeChange != null)
-            {
-                OnModeChange(_viewMode);
-            }
-            Debug.Log(_viewMode);
-            if (_viewMode == UIMode.Quitting)
-                QuitApp();
+            Abort();
         }
     }
 }

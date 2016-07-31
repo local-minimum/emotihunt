@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
-public enum UIMode {Selecting, Composing, Gallery, Feed, Quitting };
+public enum UIMode {Selecting, Composing, CompositionPhoto, Gallery, Feed, Quitting };
 
 
 public class UIModal : MonoBehaviour {
 
     [SerializeField]
-    UIMode myMode;
+    List<UIMode> myModes = new List<UIMode>();
 
     MobileUI ui;
 
@@ -27,7 +27,7 @@ public class UIModal : MonoBehaviour {
     {
         foreach (Transform child in transform)
         {
-            child.gameObject.SetActive(mode == myMode);
+            child.gameObject.SetActive(myModes.Contains(mode));
         }
     }
 }

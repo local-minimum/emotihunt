@@ -131,15 +131,24 @@ public abstract class Detector : MonoBehaviour {
         mobileUI.OnSnapImage += StartEdgeDetection;
         mobileUI.OnCloseAction += HandleCloseEvent;
         mobileUI.OnZoom += HandleZoom;
+        mobileUI.OnModeChange += HandleModeChange;
         SetupProjections();
     }
-
 
     void OnDisable()
     {
         mobileUI.OnSnapImage -= StartEdgeDetection;
         mobileUI.OnCloseAction -= HandleCloseEvent;
         mobileUI.OnZoom -= HandleZoom;
+        mobileUI.OnModeChange -= HandleModeChange;
+    }
+
+    private void HandleModeChange(UIMode mode)
+    {
+        if (mode == UIMode.Composing)
+        {
+            status = DetectorStatus.Filming;
+        }            
     }
 
     void SetupProjections()
@@ -268,6 +277,11 @@ public abstract class Detector : MonoBehaviour {
 
         _EdgeDrawCalculation();
 
+        if (status == DetectorStatus.Filming)
+        {
+            yield break;
+        }
+
         status = DetectorStatus.ReadyToDetect;
         if (OnDetectorStatusChange != null)
         {
@@ -298,6 +312,11 @@ public abstract class Detector : MonoBehaviour {
         }
         yield return new WaitForSeconds(delta);
 
+        if (status == DetectorStatus.Filming)
+        {
+            yield break;
+        }
+
         GetCorners();
 
         if (OnProgressEvent != null)
@@ -305,14 +324,28 @@ public abstract class Detector : MonoBehaviour {
             OnProgressEvent(ProgressType.Detector, "Detecting post-process", 0.9f);
         }
         yield return new WaitForSeconds(delta);
+
+        if (status == DetectorStatus.Filming)
+        {
+            yield break;
+        }
+
         _PostDetection();
 
         if (OnProgressEvent != null)
         {
             OnProgressEvent(ProgressType.Detector, "Detection done!", 1f);
         }
+
         yield return new WaitForSeconds(delta);
+
+        if (status == DetectorStatus.Filming)
+        {
+            yield break;
+        }
+
         status = DetectorStatus.ShowingResults;
+
         if (OnDetectorStatusChange != null)
         {
             OnDetectorStatusChange(this, status);

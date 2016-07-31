@@ -109,7 +109,7 @@ public class UISelectionMode : MonoBehaviour {
 
     }
 
-        void SetCurrentSelectionText()
+    void SetCurrentSelectionText()
     {
         int count = CountSelections();
         text.text = selectionTexts[count];
