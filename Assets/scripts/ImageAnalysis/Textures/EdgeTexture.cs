@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-
+using System.Collections.Generic;
 
 namespace ImageAnalysis.Textures
 {
@@ -23,13 +23,17 @@ namespace ImageAnalysis.Textures
             edges = new double[edgeSizes, 3];
         }
 
-        public override void Convolve(double[,] data, int stride)
+        public override IEnumerable<float> Convolve(double[,] data, int stride)
         {
-                        
+            
             ImageAnalysis.Convolve.Valid(ref data, stride, ref xEdges, edgeStride, sobelX);
+            yield return 0.4f;
             ImageAnalysis.Convolve.Valid(ref data, stride, ref yEdges, edgeStride, sobelY);
+            yield return 0.8f;
             ImageAnalysis.Convolve.Add(ref xEdges, ref yEdges, ref edges);
+            yield return 0.9f;
             ImageAnalysis.Convolve.Convert(ref edges, edgeStride, edgeHeight, Texture.width, ref target);
+            yield return 1.0f;
 
         }
     }

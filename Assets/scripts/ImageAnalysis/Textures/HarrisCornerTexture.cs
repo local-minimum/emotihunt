@@ -78,22 +78,32 @@ namespace ImageAnalysis.Textures
             response = new double[filt2size, channels];
         }
 
-        public override void Convolve(double[,] data, int stride)
+        public override IEnumerable<float> Convolve(double[,] data, int stride)
         {
 
             ImageAnalysis.Convolve.Valid(ref data, stride, ref edgeX, filt1stride, sobelX);
+            yield return 0.15f;
+
             ImageAnalysis.Convolve.Valid(ref data, stride, ref edgeY, filt1stride, sobelY);
+            yield return 0.3f;
 
             ImageAnalysis.Convolve.Valid(ref edgeX, filt1stride, ref gaussX, filt2stride, gauss3Filter);
+            yield return 0.45f;
+
             ImageAnalysis.Convolve.Valid(ref edgeY, filt1stride, ref gaussY, filt2stride, gauss3Filter);
+            yield return 0.6f;
 
             ImageAnalysis.Convolve.TensorMatrix(ref gaussX, ref gaussY, ref A);
+            yield return 0.8f;
 
             ImageAnalysis.Convolve.Response(ref A, kappa, ref response);
+            yield return 0.9f;
 
             Math.ValueScale01(ref response);
-            ImageAnalysis.Convolve.Convert(ref response, filt2stride, filt2height, Texture.width, ref target);
+            yield return 0.95f;
 
+            ImageAnalysis.Convolve.Convert(ref response, filt2stride, filt2height, Texture.width, ref target);
+            yield return 1f;
         }
 
         public int[,] LocateCorners(int nCorners, double aheadCost, int minDistance)

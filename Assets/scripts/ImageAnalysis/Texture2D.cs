@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 namespace ImageAnalysis
 {
@@ -86,7 +87,7 @@ namespace ImageAnalysis
 
         }
 
-        abstract public void Convolve(double[,] data, int stride);
+        abstract public IEnumerable<float> Convolve(double[,] data, int stride);
 
         public void ConvolveAndApply(double[,] data, int stride)
         {

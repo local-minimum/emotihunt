@@ -300,12 +300,13 @@ public abstract class Detector : MonoBehaviour {
             OnDetectorStatusChange(this, status);
         }
 
-        if (OnProgressEvent != null)
+        foreach (float progress in GetCornerDetection())
         {
-            OnProgressEvent(ProgressType.Detector, "Detecting cornernress", 0.4f);
-        }
-
-        GetCornerDetection();
+            if (OnProgressEvent != null)
+            {
+                OnProgressEvent(ProgressType.Detector, "Detecting cornernress", 0.4f * (1 + progress));
+            }
+        }        
 
         if (OnProgressEvent != null)
         {
@@ -366,9 +367,12 @@ public abstract class Detector : MonoBehaviour {
         }
     }
 
-    void GetCornerDetection()
+    IEnumerable<float> GetCornerDetection()
     {
-        cornerTexture.Convolve(I, size);
+        foreach (float progress in cornerTexture.Convolve(I, size))
+        {
+            yield return progress;
+        }
 
     }
 
