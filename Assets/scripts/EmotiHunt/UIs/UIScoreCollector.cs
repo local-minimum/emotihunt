@@ -13,6 +13,9 @@ public class UIScoreCollector : MonoBehaviour {
     [SerializeField, Range(1, 1000)]
     int scoreFloatToInts = 100;
 
+    [SerializeField, Range(1, 30)]
+    int bonusMultiplier = 10;
+
     [SerializeField, Range(0, 0.2f)]
     float animationSpeed = 0.02f;
 
@@ -21,6 +24,9 @@ public class UIScoreCollector : MonoBehaviour {
 
     int calculatedScore = 0;
     bool summingUpScores = false;
+
+    [SerializeField, Range(0, 1000)]
+    int relevantThreshold = 10;
 
     int ScoreTotal
     {
@@ -31,7 +37,20 @@ public class UIScoreCollector : MonoBehaviour {
             {
                 score += scores[i];
             }
-            return score;
+            return score + Bonus;
+        }
+    }
+
+    int Bonus
+    {
+        get
+        {
+            int relevant = 0;
+            for (int i=0; i<scores.Count; i++)
+            {
+                relevant += scores[i] > relevantThreshold ? 1 : 0;
+            }
+            return Mathf.RoundToInt(Mathf.Pow(relevant, Mathf.Max(1, scores.Count - 1))) * bonusMultiplier;
         }
     }
 
@@ -146,7 +165,22 @@ public class UIScoreCollector : MonoBehaviour {
             yield return new WaitForSeconds(mediumWait * animationSpeed);
 
         }
+        int bonus = Bonus;
+        if (bonus == 0)
+        {
+            mobileUI.SetStatus("No bonus");
+        }
 
+        for (int localScore=0; localScore < bonus; localScore++)
+        {
+            //64 relates to Bonus calculation of 4 relevant images 4^3=64
+            mobileUI.SetStatus(string.Format("Bonus: {0}", localScore), localScore / (64f * bonusMultiplier));
+            yield return new WaitForSeconds(animationSpeed);
+        }
+        calculatedScore += bonus;
+        yield return new WaitForSeconds(longWait * animationSpeed);
+
+        mobileUI.SetStatus(string.Format("TOTAL SCORE: {0}", calculatedScore));        
         summingUpScores = false;
     }
 
