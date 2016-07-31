@@ -24,7 +24,7 @@ public sealed class VersionDeserializationBinder : SerializationBinder
     }
 }
 
-public enum RequestStreamerState { Setup, Initiated, Downloading, FailsafeDownloading, Terminated, Error, Waiting };
+public enum RequestStreamerState { Setup, Initiating, Downloading, FailsafeDownloading, Terminated, Error, Waiting };
 
 public class RequestStreamer
 {
@@ -155,9 +155,13 @@ public class RequestStreamer
     IEnumerator<RequestStreamerState> Worker(float timeOut)
     {
 
-        yield return RequestStreamerState.Initiated;
+        yield return RequestStreamerState.Initiating;
 
         var request = WebRequest.Create(URI);
+        request.Timeout = Mathf.RoundToInt(timeOut * 1000);
+
+        yield return RequestStreamerState.Initiating;
+        
         WebResponse response = null;
         try
         {
@@ -174,6 +178,8 @@ public class RequestStreamer
             yield return RequestStreamerState.Error;
             yield break;
         }
+
+        yield return RequestStreamerState.Initiating;
 
         SetResponseHeaders(response.Headers);
         SetContentLength();
