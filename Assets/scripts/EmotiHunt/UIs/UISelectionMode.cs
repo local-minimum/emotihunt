@@ -10,14 +10,13 @@ public class UISelectionMode : MonoBehaviour {
     [SerializeField]
     Transform selectorGrid;
 
+    MobileUI mobileUI;
+
     List<UIEmojiSelector> selectors = new List<UIEmojiSelector>();
     
     UIEmojiSelected[] selections;
     [SerializeField]
     string[] selectionTexts;
-
-    [SerializeField]
-    Text text;
 
     [SerializeField]
     Button playButton;
@@ -26,6 +25,7 @@ public class UISelectionMode : MonoBehaviour {
     {
         selections = GetComponentsInChildren<UIEmojiSelected>();
         StartCoroutine(SetupSelectors());
+        mobileUI = GetComponentInParent<MobileUI>();
     }
 
     public IEnumerator<WaitForSeconds> SetupSelectors()
@@ -112,7 +112,7 @@ public class UISelectionMode : MonoBehaviour {
     void SetCurrentSelectionText()
     {
         int count = CountSelections();
-        text.text = selectionTexts[count];
+        mobileUI.SetStatus(selectionTexts[count], Mathf.Min(1, count / 2f));
         playButton.interactable = count > 1;
         //Debug.Log(string.Join(", ", selectedEmojis.ToArray()));
     }

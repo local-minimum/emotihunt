@@ -48,6 +48,17 @@ public class MobileUI : MonoBehaviour {
         Debug.Log(message);
     }
 
+    public void SetStatus(string message)
+    {
+        SetStatus(message, 0);
+    }
+
+    public void SetStatus(string message, float progress)
+    {
+        statusTextField.text = message;
+        progressImage.fillAmount = progress;
+    }
+
     public void Abort()
     {
         if (_viewMode == UIMode.Composing)
