@@ -258,7 +258,7 @@ public class RequestStreamer
         }
         else
         {
-            throw new Exception("Failed while downloading");
+            throw new Exception(string.Format("Failed while downloading. Error: '{0}',  Done {1}", errors, _isDone));
         }
     }
 

@@ -240,6 +240,11 @@ public class EmojiDB: ISerializable
                 }
             }
 
+            if (!response.Success)
+            {
+                yield return new KeyValuePair<string, float>("Error while updating", 0);
+                yield break;
+            }
             bool updated = false;
 
             try
