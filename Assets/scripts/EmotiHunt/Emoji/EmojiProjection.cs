@@ -2,7 +2,11 @@
 using ImageAnalysis;
 using UnityEngine.UI;
 
+public delegate void ScoreEvent(int index, float score);
+
 public class EmojiProjection : MonoBehaviour {
+
+    public event ScoreEvent OnScore;
 
     Image sourceImage;
     Detector detector;
@@ -18,6 +22,16 @@ public class EmojiProjection : MonoBehaviour {
 
     [SerializeField, Range(1, 1000)]
     int iterations = 5;
+
+    float _score = 0;
+
+    public float score
+    {
+        get
+        {
+            return _score;
+        }
+    }
 
     public void SetTrackingIndex(int index)
     {
@@ -72,6 +86,8 @@ public class EmojiProjection : MonoBehaviour {
         if (index != trackingEmojiIndex)
             return;
 
+        //TODO: Could be in coroutine!
+
         SetSelfImage(emoji);
 
         emojiCorners = emoji.corners.ToVector2();
@@ -92,7 +108,7 @@ public class EmojiProjection : MonoBehaviour {
         }
 
         float prevScore = -1;
-        float score = 0;
+        _score = 0;
         int i = 0;
         Vector2 nextOrigo = imageOrigo;
         float nextAngle = angle;
@@ -105,12 +121,12 @@ public class EmojiProjection : MonoBehaviour {
         while (i < iterations)
         {
             //This function and it's parameters (Vector2, Vector2, float, float) should find a max-score (0-1 value range)
-            score = Score(emojiOrigo, imageOrigo, angle, scale);
+            _score = Score(emojiOrigo, imageOrigo, angle, scale);
             //Debug.Log(string.Format("Fit Score ({0}): {1}", i, score));
 
-            if (score < prevScore * ((float) i + iterations / 2f) / iterations)
+            if (_score < prevScore * ((float) i + iterations / 2f) / iterations)
             {
-                score = prevScore;
+                _score = prevScore;
                 //Debug.Log(string.Format("Final Score: {0}", score));
 
                 break;
@@ -132,10 +148,15 @@ public class EmojiProjection : MonoBehaviour {
             nextAngle = angle + dAngle * stepAngle * moveFraction;
             nextScale = scale + dScale * stepScale * moveFraction;
 
-            prevScore = score;
+            prevScore = _score;
             i++;
         }
         PlaceImage(emojiOrigo, imageOrigo, angle, scale);
+
+        if (OnScore != null)
+        {
+            OnScore(index, _score);
+        }
     }
 
     float GetScaleDelta(Vector2 emojiOrigo, Vector2 imageOrigo, float angle, float scale, float step)

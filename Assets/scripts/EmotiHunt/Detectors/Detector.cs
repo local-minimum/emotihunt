@@ -8,7 +8,7 @@ using System;
 public delegate void DetectorStatusEvent(Detector screen, DetectorStatus status);
 public delegate void EmojiMatchEvent(int index, Vector2[] corners, Emoji emoji);
 public delegate void ProgressEvent(ProgressType t, string message, float progress);
-
+public delegate void EmojiProjectionEvent(EmojiProjection emojiProjection);
 
 public enum ProgressType {Detector, EmojiDB};
 public enum DetectorStatus {Filming, DetectingSetup, ReadyToDetect, Detecting, ShowingResults, Inactive, PreIniting, Initing};
@@ -54,6 +54,7 @@ public abstract class Detector : MonoBehaviour {
     public event EmojiMatchEvent OnMatchWithEmoji;
     public event DetectorStatusEvent OnDetectorStatusChange;
     public event ProgressEvent OnProgressEvent;
+    public event EmojiProjectionEvent OnNewEmojiProjection;
 
     [SerializeField]
     protected Image image;
@@ -166,6 +167,10 @@ public abstract class Detector : MonoBehaviour {
                 proj.Setup(image);
                 proj.SetTrackingIndex(i);
                 projections.Add(proj);
+                if (OnNewEmojiProjection != null)
+                {
+                    OnNewEmojiProjection(proj);
+                }
 
             }
             i++;
