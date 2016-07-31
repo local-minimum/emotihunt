@@ -8,10 +8,10 @@ Get a rank.
 
 ## Current status
 
-Happens there are unused corners but they still appear
+Can take images, no save, no score.
 
 ### Issues
 
 * Server crashes too frequently
-* Something strange when selecting 2 then going back and selecting 3.
-Not shouwing correct emoji on 3rd.
+* Sometimes app gridlock crash while wating for server
+
