@@ -155,6 +155,7 @@ public abstract class Detector : MonoBehaviour {
     {
         var db = emojiDB.DB;
         int i = 0;
+        emojis.Clear();
         foreach (string emojiName in UISelectionMode.selectedEmojis)
         {
             emojis.Add(db[emojiName]);
