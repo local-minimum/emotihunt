@@ -101,7 +101,15 @@ public class MobileUI : MonoBehaviour {
     {
         HandleProgressEvent(ProgressType.Detector, "Processing (takes a while)", 0);
         if (OnSnapImage != null)
+        {
             OnSnapImage();
+        }
+
+        _viewMode = UIMode.CompositionPhoto;
+        if (OnModeChange != null)
+        {
+            OnModeChange(_viewMode);
+        }
     }
 
     public void Zoom(Slider slider)

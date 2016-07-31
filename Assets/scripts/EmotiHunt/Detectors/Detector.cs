@@ -147,7 +147,7 @@ public abstract class Detector : MonoBehaviour {
     {
         if (mode == UIMode.Composing)
         {
-            status = DetectorStatus.Filming;
+            HandleCloseEvent();
         }            
     }
 
@@ -226,13 +226,13 @@ public abstract class Detector : MonoBehaviour {
 
     void CloseResults()
     {
-        //TODO: Some more clean up probably
+        status = DetectorStatus.Filming;
         if (OnDetectorStatusChange != null)
         {
             OnDetectorStatusChange(this, DetectorStatus.Filming);
         }
 
-        status = DetectorStatus.Filming;
+
     }
 
     void StartEdgeDetection()
