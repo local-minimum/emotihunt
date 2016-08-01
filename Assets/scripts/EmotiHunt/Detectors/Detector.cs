@@ -381,18 +381,16 @@ public abstract class Detector : MonoBehaviour {
         }
     }
 
-    protected void CaptureImage()
-    {
-        //StartCoroutine(
-        //   ScreenShot.CaptureByBounds(transform as RectTransform, Camera.main, SaveTexture));
-
-        Status = DetectorStatus.Screenshotted;
-
+    protected IEnumerator<WaitForEndOfFrame> CaptureImage()
+    {   
+        yield return new WaitForEndOfFrame();
+        ScreenShot.CaptureByBounds(transform as RectTransform, Camera.main, SaveTexture);       
     }
 
     protected virtual void SaveTexture(Texture2D tex)
     {
         ScreenShot.WriteToFile(tex, Application.persistentDataPath + "/test.png");
+        Status = DetectorStatus.Screenshotted;
     }
 
 }

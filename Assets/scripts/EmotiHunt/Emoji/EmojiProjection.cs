@@ -139,7 +139,7 @@ public class EmojiProjection : MonoBehaviour {
             }
 
             Vector2 dOrigo = GetSobel(emojiOrigo, imageOrigo, angle, scale, stepOrigo);
-            float dOrigoMagnitude = dOrigo.magnitude;
+            //float dOrigoMagnitude = dOrigo.magnitude;
 
             float dAngle = GetAngleDelta(emojiOrigo, imageOrigo, angle, scale, stepAngle);
             float dScale = GetScaleDelta(emojiOrigo, imageOrigo, angle, scale, stepScale);
