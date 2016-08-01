@@ -284,7 +284,7 @@ public abstract class Detector : MonoBehaviour {
         {
             if (OnProgressEvent != null)
             {
-                OnProgressEvent(ProgressType.Detector, "Detecting cornernress", 0.4f * (1 + progress));
+                OnProgressEvent(ProgressType.Detector, "Detecting cornernress", 0.1f + 0.6f * progress);
             }
             yield return new WaitForSeconds(delta);
 
@@ -292,7 +292,7 @@ public abstract class Detector : MonoBehaviour {
 
         if (OnProgressEvent != null)
         {
-            OnProgressEvent(ProgressType.Detector, "Detecting corners", 0.8f);
+            OnProgressEvent(ProgressType.Detector, "Detecting corners", 0.7f);
         }
         yield return new WaitForSeconds(delta);
 
@@ -302,7 +302,14 @@ public abstract class Detector : MonoBehaviour {
             yield break;
         }
 
-        GetCorners();
+        foreach (float progress in GetCorners())
+        {
+            if (OnProgressEvent != null)
+            {
+                OnProgressEvent(ProgressType.Detector, "Detecting corners", 0.7f + 0.2f * progress);
+                yield return new WaitForSeconds(delta);
+            }
+        }
 
         if (OnProgressEvent != null)
         {
@@ -335,15 +342,28 @@ public abstract class Detector : MonoBehaviour {
         Debug.Log("End of detection method");
     }
 
-    void GetCorners()
+    IEnumerable<float> GetCorners()
     {
-        corners = ImageAnalysis.Math.CoordinatesToTexRelativeVector2(
-            cornerTexture.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance, (size - cornerTexture.ResponseStride)/2),
-            cornerTexture.Texture);
-        for (int i = 0; i < emojis.Count; i++) {
+        int l = emojis.Count;
+        float total = (l * 10 + 3);
+        float progress = 0;
+
+        ImageAnalysis.Coordinate[] coordinates = cornerTexture.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance, (size - cornerTexture.ResponseStride) / 2);
+        progress += 2 / total;
+        yield return progress;
+        corners = ImageAnalysis.Math.CoordinatesToTexRelativeVector2(coordinates, cornerTexture.Texture);
+        progress += 1 / total;
+        yield return progress;
+
+        for (int i = 0; i < l; i++) {
             if (OnMatchWithEmoji != null)
+            {
                 OnMatchWithEmoji(i, corners, emojis[i]);
+                progress += 10 / total;
+                yield return progress;
+            }
         }
+        yield return 1;
     }
 
     IEnumerable<float> GetCornerDetection()
