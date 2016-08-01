@@ -87,7 +87,7 @@ public class UIScoreCollector : MonoBehaviour {
             scores.Clear();
             emojiIndices.Clear();
             calculatedScore = 0;
-
+            summingUpScores = false;
         }
     }
 
@@ -121,6 +121,9 @@ public class UIScoreCollector : MonoBehaviour {
 
         if (summingUpScores)
             yield break;
+
+        detector.Status = DetectorStatus.Scoring;
+
         summingUpScores = true;
         mobileUI.SetStatus("Scores...");
         yield return new WaitForSeconds(longWait * animationSpeed);
@@ -144,7 +147,12 @@ public class UIScoreCollector : MonoBehaviour {
                 break;
             }
         }
-        Debug.Log(index);
+
+        if (detector.Status != DetectorStatus.Scoring)
+        {            
+            HandleDetectorStatus(detector, detector.Status);
+            yield break;
+        }
 
         while (index < scores.Count)
         {
@@ -160,11 +168,23 @@ public class UIScoreCollector : MonoBehaviour {
             }
             summedScores = calculatedScore = scores[index] + summedScores;
             index++;
+            if (detector.Status != DetectorStatus.Scoring)
+            {
+                HandleDetectorStatus(detector, detector.Status);
+                yield break;
+            }
             yield return new WaitForSeconds(longWait * animationSpeed);
             mobileUI.SetStatus("");
             yield return new WaitForSeconds(mediumWait * animationSpeed);
 
         }
+
+        if (detector.Status != DetectorStatus.Scoring)
+        {
+            HandleDetectorStatus(detector, detector.Status);
+            yield break;
+        }
+
         int bonus = Bonus;
         if (bonus == 0)
         {
@@ -182,6 +202,14 @@ public class UIScoreCollector : MonoBehaviour {
 
         mobileUI.SetStatus(string.Format("TOTAL SCORE: {0}", calculatedScore));        
         summingUpScores = false;
+
+        if (detector.Status != DetectorStatus.Scoring)
+        {
+            HandleDetectorStatus(detector, detector.Status);
+            yield break;
+        }
+
+        detector.Status = DetectorStatus.WaitingForScreenshot;
     }
 
 }

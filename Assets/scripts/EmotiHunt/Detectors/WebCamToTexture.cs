@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Collections;
 using ImageAnalysis.Textures;
 
 public class WebCamToTexture : Detector {
@@ -43,6 +44,10 @@ public class WebCamToTexture : Detector {
         else if (status == DetectorStatus.ReadyToDetect)
         {
             StartCoroutine(Detect());
+
+        } else if (status == DetectorStatus.WaitingForScreenshot)
+        {
+            CaptureImage();
         }
     }
 
@@ -70,4 +75,5 @@ public class WebCamToTexture : Detector {
             MarkCorners(corners, image.transform);
         }
     }
+
 }

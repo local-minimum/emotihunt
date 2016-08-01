@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using ImageAnalysis;
 using UnityEngine.UI;
+using System.Collections.Generic;    
 
 public delegate void ScoreEvent(int index, float score);
 
@@ -25,6 +26,8 @@ public class EmojiProjection : MonoBehaviour {
 
     float _score = 0;
 
+    [SerializeField]
+    List<DetectorStatus> visibleStates = new List<DetectorStatus>() { DetectorStatus.ShowingResults, DetectorStatus.Scoring, DetectorStatus.WaitingForScreenshot, DetectorStatus.Screenshotted };
     public float score
     {
         get
@@ -63,6 +66,7 @@ public class EmojiProjection : MonoBehaviour {
         {
             detector.OnMatchWithEmoji += HandleNewCorners;
             detector.OnDetectorStatusChange += HandleDetectorStatus;
+            HandleDetectorStatus(detector, detector.Status);
         }
     }
 
@@ -75,10 +79,7 @@ public class EmojiProjection : MonoBehaviour {
     private void HandleDetectorStatus(Detector screen, DetectorStatus status)
     {
 
-        if (status != DetectorStatus.ShowingResults)
-        {
-            selfImage.enabled = false;
-        }
+        selfImage.enabled = visibleStates.Contains(status);
     }
 
     private void HandleNewCorners(int index, Vector2[] corners, Emoji emoji)

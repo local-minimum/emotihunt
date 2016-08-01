@@ -11,7 +11,7 @@ public delegate void ProgressEvent(ProgressType t, string message, float progres
 public delegate void EmojiProjectionEvent(EmojiProjection emojiProjection);
 
 public enum ProgressType {Detector, EmojiDB};
-public enum DetectorStatus {Filming, DetectingSetup, ReadyToDetect, Detecting, ShowingResults, Inactive, PreIniting, Initing};
+public enum DetectorStatus {Filming, DetectingSetup, ReadyToDetect, Detecting, ShowingResults, Scoring, WaitingForScreenshot, Screenshotted, Inactive, PreIniting, Initing};
 
 [Serializable]
 public struct Vector2Surrogate {
@@ -118,6 +118,15 @@ public abstract class Detector : MonoBehaviour {
                 return status;
             }
         }
+
+        set
+        {
+            status = value;
+            if (OnDetectorStatusChange != null)
+            {
+                OnDetectorStatusChange(this, status);
+            }
+        }
     }
 
     void Awake()
@@ -130,16 +139,15 @@ public abstract class Detector : MonoBehaviour {
     void OnEnable()
     {       
         mobileUI.OnSnapImage += StartEdgeDetection;
-        mobileUI.OnCloseAction += HandleCloseEvent;
         mobileUI.OnZoom += HandleZoom;
         mobileUI.OnModeChange += HandleModeChange;
         SetupProjections();
+        Status = DetectorStatus.Filming;
     }
 
     void OnDisable()
     {
         mobileUI.OnSnapImage -= StartEdgeDetection;
-        mobileUI.OnCloseAction -= HandleCloseEvent;
         mobileUI.OnZoom -= HandleZoom;
         mobileUI.OnModeChange -= HandleModeChange;
     }
@@ -148,7 +156,7 @@ public abstract class Detector : MonoBehaviour {
     {
         if (mode == UIMode.Composing)
         {
-            HandleCloseEvent();
+            Status = DetectorStatus.Filming; 
         }            
     }
 
@@ -219,28 +227,6 @@ public abstract class Detector : MonoBehaviour {
         this.zoom = zoom;
     }
 
-    bool HandleCloseEvent()
-    {
-        if (Status == DetectorStatus.ShowingResults)
-        {
-            CloseResults();
-            mobileUI.Play();
-            return true;
-        }
-        return false;
-    }
-
-    void CloseResults()
-    {
-        status = DetectorStatus.Filming;
-        if (OnDetectorStatusChange != null)
-        {
-            OnDetectorStatusChange(this, DetectorStatus.Filming);
-        }
-
-
-    }
-
     void StartEdgeDetection()
     {
         if (!working)
@@ -268,11 +254,7 @@ public abstract class Detector : MonoBehaviour {
     protected IEnumerator<WaitForEndOfFrame> DetectSetup()
     {
         working = true;
-        status = DetectorStatus.DetectingSetup;
-        if (OnDetectorStatusChange != null)
-        {
-            OnDetectorStatusChange(this, status);
-        }
+        Status = DetectorStatus.DetectingSetup;
 
         yield return new WaitForEndOfFrame();
 
@@ -285,25 +267,18 @@ public abstract class Detector : MonoBehaviour {
 
         if (status == DetectorStatus.Filming)
         {
+            working = false;
             yield break;
         }
 
-        status = DetectorStatus.ReadyToDetect;
-        if (OnDetectorStatusChange != null)
-        {
-            OnDetectorStatusChange(this, status);
-        }
+        Status = DetectorStatus.ReadyToDetect;
 
     }
 
     protected IEnumerator<WaitForSeconds> Detect() {
         float delta = 0.01f;
 
-        status = DetectorStatus.Detecting;
-        if (OnDetectorStatusChange != null)
-        {
-            OnDetectorStatusChange(this, status);
-        }
+        Status = DetectorStatus.Detecting;
 
         foreach (float progress in GetCornerDetection())
         {
@@ -311,7 +286,9 @@ public abstract class Detector : MonoBehaviour {
             {
                 OnProgressEvent(ProgressType.Detector, "Detecting cornernress", 0.4f * (1 + progress));
             }
-        }        
+            yield return new WaitForSeconds(delta);
+
+        }
 
         if (OnProgressEvent != null)
         {
@@ -321,6 +298,7 @@ public abstract class Detector : MonoBehaviour {
 
         if (status == DetectorStatus.Filming)
         {
+            working = false;
             yield break;
         }
 
@@ -334,6 +312,7 @@ public abstract class Detector : MonoBehaviour {
 
         if (status == DetectorStatus.Filming)
         {
+            working = false;
             yield break;
         }
 
@@ -348,17 +327,12 @@ public abstract class Detector : MonoBehaviour {
 
         if (status == DetectorStatus.Filming)
         {
+            working = false;
             yield break;
         }
 
-        status = DetectorStatus.ShowingResults;
-
-        if (OnDetectorStatusChange != null)
-        {
-            OnDetectorStatusChange(this, status);
-        }
         working = false;
-
+        Debug.Log("End of detection method");
     }
 
     void GetCorners()
@@ -407,5 +381,18 @@ public abstract class Detector : MonoBehaviour {
         }
     }
 
+    protected void CaptureImage()
+    {
+        //StartCoroutine(
+        //   ScreenShot.CaptureByBounds(transform as RectTransform, Camera.main, SaveTexture));
+
+        Status = DetectorStatus.Screenshotted;
+
+    }
+
+    protected virtual void SaveTexture(Texture2D tex)
+    {
+        ScreenShot.WriteToFile(tex, Application.persistentDataPath + "/test.png");
+    }
 
 }
