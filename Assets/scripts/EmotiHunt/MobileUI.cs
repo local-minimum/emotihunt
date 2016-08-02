@@ -129,10 +129,29 @@ public class MobileUI : MonoBehaviour {
             OnZoom(slider.value);
     }
 
+    public void AboutHelp()
+    {
+        _viewMode = UIMode.About;
+        if (OnModeChange != null)
+            OnModeChange(_viewMode);
+
+    }
+
     public void Play()
     {
-        _viewMode = UIMode.Composing;
-        HandleProgressEvent(ProgressType.Detector, "Compose image", 0);
+        if (_viewMode == UIMode.Feed)
+        {
+            _viewMode = UIMode.Selecting;
+        }
+        else if (_viewMode == UIMode.Selecting)
+        {
+            _viewMode = UIMode.Composing;
+            HandleProgressEvent(ProgressType.Detector, "Compose image", 0);
+        } else
+        {
+            return;
+        }
+
         if (OnModeChange != null)
             OnModeChange(_viewMode);
     }    
