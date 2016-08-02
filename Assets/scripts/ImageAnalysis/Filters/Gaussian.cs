@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System;
-
+﻿
 namespace ImageAnalysis.Filters
 {
     public abstract class Gaussian : Filter
@@ -9,7 +6,7 @@ namespace ImageAnalysis.Filters
         private float scale = -1;
         public float GetValue(int x, int y, float sigma)
         {
-            return 1.0f / (2 * Mathf.PI * Mathf.Pow(sigma, 2)) * Mathf.Exp(-(Mathf.Pow(x, 2) + Mathf.Pow(y, 2))/(2 * Mathf.Pow(sigma, 2)));
+            return (float) (1.0 / (2 * System.Math.PI * System.Math.Pow(sigma, 2)) * System.Math.Exp(-(System.Math.Pow(x, 2) + System.Math.Pow(y, 2))/(2 * System.Math.Pow(sigma, 2))));
         }
 
         protected void SetScale()
