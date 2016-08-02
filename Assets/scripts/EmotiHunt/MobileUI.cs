@@ -68,7 +68,7 @@ public class MobileUI : MonoBehaviour {
         {
             _viewMode = UIMode.Composing;
         }
-        else if (_viewMode == UIMode.Selecting)
+        else if (_viewMode == UIMode.Selecting || _viewMode == UIMode.About)
         {
             _viewMode = UIMode.Feed;
 
