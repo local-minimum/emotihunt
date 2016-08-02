@@ -15,14 +15,16 @@ Roadmap towards release
  * Scrollable area with cards (load 10 at a time)
  * A notification card which sums up scores for all photos on the emoji set
 * Let selection reset when (A) only 1 emoji remains or (B) week has passed.
-* Let feed have buttons to other pages
+* :white_check_mark: Let feed have buttons to other pages
 * :white_check_mark: Create about page
+* :White_check_mark: UI icons update
 * Simply point to files on server rather than having software serve it.
 * Create at least 16 emojis pixelated 64x64.
 * Make editor write out version ID directly to file to not make mistakes.
 
 ## Issues
 
+* Selection only works if starts up in selection mode
 * Server crashes too frequently
 * Sometimes app gridlock crash while wating for server
 
