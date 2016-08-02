@@ -12,6 +12,9 @@ public class UIButton : MonoBehaviour {
 
     [SerializeField] Selectable uiItem;
 
+    [SerializeField]
+    bool removeWhenNotInteractable = false;
+
     void OnEnable()
     {
         detector.OnDetectorStatusChange += HandleStatusChange;
@@ -25,6 +28,16 @@ public class UIButton : MonoBehaviour {
 
     private void HandleStatusChange(Detector screen, DetectorStatus status)
     {
-        uiItem.interactable = interactableStatuses.Contains(status);
+        if (removeWhenNotInteractable)
+        {
+            uiItem.enabled = interactableStatuses.Contains(status);
+            foreach (Image img in uiItem.GetComponentsInChildren<Image>())
+            {
+                img.enabled = uiItem.enabled;
+            }
+        }
+        else {
+            uiItem.interactable = interactableStatuses.Contains(status);
+        }
     }
 }

@@ -20,6 +20,7 @@ Roadmap towards release
 * :White_check_mark: UI icons update
 * Simply point to files on server rather than having software serve it.
 * Create at least 16 emojis pixelated 64x64.
+ * Make detection padd with transparent pixels to not cropaway images
 * Make editor write out version ID directly to file to not make mistakes.
 
 ## Issues

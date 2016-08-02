@@ -21,11 +21,33 @@ public class UISelectionMode : MonoBehaviour {
     [SerializeField]
     Button playButton;
 
-    void Start()
+    void Awake()
     {
         selections = GetComponentsInChildren<UIEmojiSelected>();
-        StartCoroutine(SetupSelectors());
         mobileUI = GetComponentInParent<MobileUI>();
+    }
+
+    void Start()
+    {
+        StartCoroutine(SetupSelectors());
+    }
+
+    void OnEnable()
+    {
+        mobileUI.OnModeChange += HandleModeChange;
+    }
+
+    void OnDisable()
+    {
+        mobileUI.OnModeChange -= HandleModeChange;
+    }
+
+    private void HandleModeChange(UIMode mode)
+    {
+        if (mode == UIMode.Selecting)
+        {
+            SetCurrentSelectionText();
+        }
     }
 
     public IEnumerator<WaitForSeconds> SetupSelectors()
@@ -50,7 +72,10 @@ public class UISelectionMode : MonoBehaviour {
             selector.Set(kvp.Value);
         }
 
-        SetCurrentSelectionText();
+        if (mobileUI.viewMode == UIMode.Selecting)
+        {
+            SetCurrentSelectionText();
+        }
     }
 
     public bool UIEmojiSelect(UIEmojiSelector btn)
