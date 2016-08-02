@@ -16,7 +16,7 @@ Roadmap towards release
  * A notification card which sums up scores for all photos on the emoji set
 * Let selection reset when (A) only 1 emoji remains or (B) week has passed.
 * Let feed have buttons to other pages
-* Create about page
+* :white_check_mark: Create about page
 * Simply point to files on server rather than having software serve it.
 * Create at least 16 emojis pixelated 64x64.
 * Make editor write out version ID directly to file to not make mistakes.
