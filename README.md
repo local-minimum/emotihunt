@@ -8,9 +8,20 @@ Get a rank.
 
 ## Current status
 
-Can take images, no save, no score.
+Roadmap towards release
 
-### Issues
+* Create feed of previous photos
+ * A card with Image, Emoji tags below and the scores and date.
+ * Scrollable area with cards (load 10 at a time)
+ * A notification card which sums up scores for all photos on the emoji set
+* Let selection reset when (A) only 1 emoji remains or (B) week has passed.
+* Let feed have buttons to other pages
+* Create about page
+* Simply point to files on server rather than having software serve it.
+* Create at least 16 emojis pixelated 64x64.
+* Make editor write out version ID directly to file to not make mistakes.
+
+## Issues
 
 * Server crashes too frequently
 * Sometimes app gridlock crash while wating for server
