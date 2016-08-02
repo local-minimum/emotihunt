@@ -17,7 +17,7 @@ Roadmap towards release
 * Let selection reset when (A) only 1 emoji remains or (B) week has passed.
 * :white_check_mark: Let feed have buttons to other pages
 * :white_check_mark: Create about page
-* :White_check_mark: UI icons update
+* :white_check_mark: UI icons update
 * Simply point to files on server rather than having software serve it.
 * Create at least 16 emojis pixelated 64x64.
  * Make detection padd with transparent pixels to not cropaway images
