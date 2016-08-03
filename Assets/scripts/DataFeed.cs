@@ -50,12 +50,12 @@ public class DataFeed<T>
     }
 
 
-    public static byte[] GetIntAsBytes(int n)
+    static byte[] GetIntAsBytes(int n)
     {
         return BitConverter.GetBytes(n);
     }
 
-    public static int GetBytesAsInt(byte[] b)
+    static int GetBytesAsInt(byte[] b)
     {
         return BitConverter.ToInt32(b, 0);
     }
@@ -181,5 +181,10 @@ public class DataFeed<T>
             }
             return curIndex;
         }
+    }
+
+    public void Wipe()
+    {
+        using (FileStream f = File.Open(location, FileMode.Create, FileAccess.Write));
     }
 }

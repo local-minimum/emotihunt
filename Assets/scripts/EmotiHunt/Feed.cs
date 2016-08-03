@@ -18,7 +18,9 @@ public class Feed : MonoBehaviour {
         Debug.Log("Feed at: " + index);
         
         LoadBatch();
-	}
+        Storage.Wipe();
+        Debug.Log("Feed length: " + Storage.Count);
+    }
 	
 	void Update () {
 	
@@ -37,6 +39,11 @@ public class Feed : MonoBehaviour {
         catch (System.IO.FileNotFoundException)
         {
             Debug.LogWarning("No feed save data");
+        } catch (System.DataMisalignedException)
+        {
+            Debug.LogError("Feed is corrupt, will be wiped");
         }
     }
+
+
 }
