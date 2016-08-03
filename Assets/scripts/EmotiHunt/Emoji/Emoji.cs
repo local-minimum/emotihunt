@@ -27,6 +27,7 @@ public class Emoji
 [Serializable]
 public class EmojiDB: ISerializable
 {
+    string baseURI = "http://local-minimum.unknownincubator.com";
 
     static string dbLocation = Application.persistentDataPath + "/emoji.db";
 
@@ -204,8 +205,8 @@ public class EmojiDB: ISerializable
         {
             Debug.developerConsoleVisible = true;            
         }
-        string baseURI = "http://212.85.82.101:5050";
-        RequestStreamer response = RequestStreamer.Create(baseURI + "/emoji/version");
+        
+        RequestStreamer response = RequestStreamer.Create(baseURI + "/emojihunt/version");
         string waitChars = "-/|\\";
         int charPos = -1;
         while (!response.isDone)
@@ -229,7 +230,7 @@ public class EmojiDB: ISerializable
 
             yield return new KeyValuePair<string, float>("Downloading data...", 0);
 
-            response = RequestStreamer.Create(baseURI + "/emoji/download");
+            response = RequestStreamer.Create(baseURI + "/emojihunt/data");
             
             while (!response.isDone)
             {
