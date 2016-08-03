@@ -18,8 +18,6 @@ public class Feed : MonoBehaviour {
         Debug.Log("Feed at: " + index);
         
         LoadBatch();
-        Storage.Wipe();
-        Debug.Log("Feed length: " + Storage.Count);
     }
 	
 	void Update () {
@@ -31,9 +29,7 @@ public class Feed : MonoBehaviour {
         try
         {
             var newPosts = Storage.Read(index, readLength);
-            Debug.Log(newPosts.Count);
-            Debug.Log(newPosts[0].imagePath);
-            Debug.Log(newPosts[0].scores.Sum());
+            Debug.Log("Loaded: " + newPosts.Count);
 
         }
         catch (System.IO.FileNotFoundException)
