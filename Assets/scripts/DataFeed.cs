@@ -63,44 +63,64 @@ public class DataFeed<T> {
     {
 
         List<T> objects = new List<T>();
-        byte[] sizeBuffer = new byte[4];
+        
         int curIndex = 0;
-        int pos = 0;
+        long pos = 0;
         int end = index + size;
 
         using (FileStream f = File.Open(location, FileMode.Open, FileAccess.Read))
         {
-            using (BinaryReader br = new BinaryReader(f))
+            if (f.Length != 0)
             {
-                while (curIndex < end)
+
+                using (BinaryReader br = new BinaryReader(f))
                 {
-                    int read = br.Read(sizeBuffer, pos, 4);
-                    if (read != 4)
+                    while (curIndex < end)
                     {
-                        throw new Exception("Data corrupt, can't read size");
-                    }
-                    int dataSize = GetBytesAsInt(sizeBuffer);
-                    pos += 4;
-
-                    if (curIndex >= index)
-                    {
-
-                        byte[] dataBuffer = new byte[dataSize];
-                        read = br.Read(dataBuffer, pos, dataSize);
-                        if (read != dataSize)
+                        byte[] sizeBuffer = br.ReadBytes(4);
+                        if (sizeBuffer.Length != 4)
                         {
-                            throw new Exception("Data corrupt, can't read serialized object");
+                            throw new DataMisalignedException(
+                                string.Format(
+                                    "File {0} had truncated SizeBuffer at index {1}, data position {2}, only {3} bytes (should have been 4)",
+                                    location, curIndex, pos, sizeBuffer.Length));
                         }
+                        int dataSize = GetBytesAsInt(sizeBuffer);
+                        pos += 4;
 
-                        BinaryFormatter bformatter = new BinaryFormatter();
-                        bformatter.Binder = new VersionDeserializationBinder();
-                        using (MemoryStream ms = new MemoryStream()) {
-                            objects.Add((T) bformatter.Deserialize(ms));
+                        if (curIndex >= index)
+                        {
+
+                            byte[] dataBuffer = br.ReadBytes(dataSize);
+
+                            if (dataBuffer.Length != dataSize)
+                            {
+                                throw new DataMisalignedException(
+                                    string.Format(
+                                        "File {0} had truncated Serialized Object at index {1}, data position {2}, only {3} bytes (should have been {4})",
+                                        location, curIndex, pos, dataBuffer.Length, dataSize));
+
+                            }
+
+                            BinaryFormatter bformatter = new BinaryFormatter();
+                            bformatter.Binder = new VersionDeserializationBinder();
+                            using (MemoryStream ms = new MemoryStream())
+                            {
+                                objects.Add((T)bformatter.Deserialize(ms));
+                            }
+
                         }
-
+                        else
+                        {
+                            br.BaseStream.Seek(dataSize, SeekOrigin.Current);
+                        }
+                        pos += dataSize;
+                        curIndex++;
+                        if (f.Length == pos)
+                        {
+                            break;
+                        }
                     }
-                    pos += dataSize;
-                    curIndex++;
                 }
             }
         }

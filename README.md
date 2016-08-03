@@ -26,6 +26,6 @@ Roadmap towards release
 ## Issues
 
 * Selection only works if starts up in selection mode
-* Server crashes too frequently
+* :white_check_mark: Server crashes too frequently (solved simpler serving solution).
 * Sometimes app gridlock crash while wating for server
 
