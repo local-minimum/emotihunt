@@ -28,6 +28,17 @@ public class MobileUI : MonoBehaviour {
     public UIMode viewMode
     {
         get { return _viewMode; }
+        set
+        {
+            if (_viewMode != value)
+            {
+                _viewMode = value;
+                if (OnModeChange != null)
+                {
+                    OnModeChange(_viewMode);
+                }
+            }
+        }
     }
 
     void OnEnable()

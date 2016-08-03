@@ -28,7 +28,7 @@ public class UIScoreCollector : MonoBehaviour {
     [SerializeField, Range(0, 1000)]
     int relevantThreshold = 10;
 
-    int ScoreTotal
+    public int ScoreTotal
     {
         get
         {
@@ -41,7 +41,7 @@ public class UIScoreCollector : MonoBehaviour {
         }
     }
 
-    int Bonus
+    public int Bonus
     {
         get
         {
@@ -52,6 +52,11 @@ public class UIScoreCollector : MonoBehaviour {
             }
             return Mathf.RoundToInt(Mathf.Pow(relevant, Mathf.Max(1, scores.Count - 1))) * bonusMultiplier;
         }
+    }
+
+    public int GetScore(int index)
+    {
+        return scores[index];
     }
 
 	void Start () {

@@ -96,6 +96,9 @@ public abstract class Detector : MonoBehaviour {
     public static EmojiDB emojiDB;
     static bool ready = false;
 
+    private string screnShotFileName;
+    UIScoreCollector scoreCollector;
+
     public static bool Ready
     {
         get
@@ -132,6 +135,7 @@ public abstract class Detector : MonoBehaviour {
     void Awake()
     {
         mobileUI = FindObjectOfType<MobileUI>();
+        scoreCollector = GetComponentInParent<UIScoreCollector>();
         I = new double[size * size, 3];
         
     }
@@ -404,13 +408,33 @@ public abstract class Detector : MonoBehaviour {
     protected IEnumerator<WaitForEndOfFrame> CaptureImage()
     {   
         yield return new WaitForEndOfFrame();
-        ScreenShot.CaptureByBounds(transform as RectTransform, Camera.main, SaveTexture);       
+        ScreenShot.CaptureByBounds(transform as RectTransform, Camera.main, SaveTexture);
+
+        var data = FeedCard.CreatePost(screnShotFileName);
+        for (int i = 0; i < emojis.Count; i++) {
+            data.Add(emojis[i], scoreCollector.GetScore(i));
+        }
+        data.scores.Add(scoreCollector.Bonus);
+        Feed.Storage.Append(data);
+        mobileUI.viewMode = UIMode.Feed;
     }
 
     protected virtual void SaveTexture(Texture2D tex)
     {
-        ScreenShot.WriteToFile(tex, Application.persistentDataPath + "/test.png");
-        Status = DetectorStatus.Screenshotted;
+        screnShotFileName = 
+            DateTime.Now.ToString("yyyy-MM-dd_HH.mm") + "_" + 
+            string.Join("_", UISelectionMode.selectedEmojis.ToArray()) + ".png";
+
+        ScreenShot.WriteToFile(tex, Application.persistentDataPath + "/" + screnShotFileName);
+        Status = DetectorStatus.Screenshotted;        
+    }
+
+    public void SaveImage()
+    {
+        if (status == DetectorStatus.WaitingForScreenshot)
+        {
+            StartCoroutine(CaptureImage());
+        }
     }
 
 }

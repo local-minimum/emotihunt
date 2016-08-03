@@ -3,7 +3,8 @@ using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-public class DataFeed<T> {
+public class DataFeed<T>
+{
 
     string location;
 
@@ -17,15 +18,15 @@ public class DataFeed<T> {
         location = storageLocation;
     }
 
-    public void Append(object obj)
+    public void Append(T obj)
     {
         //Serialize the object
         MemoryStream ms = new MemoryStream();
-        BinaryFormatter bf = new BinaryFormatter();        
+        BinaryFormatter bf = new BinaryFormatter();
         bf.Serialize(ms, obj);
         ms.Flush();
         ms.Position = 0;
-                    
+
         //Get binary representations
         byte[] serializedObj = ms.ToArray();
 
@@ -63,7 +64,7 @@ public class DataFeed<T> {
     {
 
         List<T> objects = new List<T>();
-        
+
         int curIndex = 0;
         long pos = 0;
         int end = index + size;
@@ -106,6 +107,10 @@ public class DataFeed<T> {
                             bformatter.Binder = new VersionDeserializationBinder();
                             using (MemoryStream ms = new MemoryStream())
                             {
+                                BinaryWriter bw = new BinaryWriter(ms);
+                                bw.Write(dataBuffer);
+                                ms.Flush();
+                                ms.Position = 0;
                                 objects.Add((T)bformatter.Deserialize(ms));
                             }
 
@@ -127,4 +132,54 @@ public class DataFeed<T> {
         return objects;
     }
 
+    public int Count
+    {
+        get
+        {
+            int curIndex = 0;
+            long pos = 0;
+
+            try
+            {
+                using (FileStream f = File.Open(location, FileMode.Open, FileAccess.Read))
+                {
+                    if (f.Length != 0)
+                    {
+
+                        using (BinaryReader br = new BinaryReader(f))
+                        {
+                            while (true)
+                            {
+                                byte[] sizeBuffer = br.ReadBytes(4);
+                                if (sizeBuffer.Length != 4)
+                                {
+                                    throw new DataMisalignedException(
+                                        string.Format(
+                                            "File {0} had truncated SizeBuffer at index {1}, data position {2}, only {3} bytes (should have been 4)",
+                                            location, curIndex, pos, sizeBuffer.Length));
+                                }
+                                int dataSize = GetBytesAsInt(sizeBuffer);
+                                pos += 4;
+                                long sought = br.BaseStream.Seek(dataSize, SeekOrigin.Current);
+                                pos += dataSize;
+                                curIndex++;
+                                if (sought != dataSize || pos >= f.Length)
+                                {
+                                    break;
+                                }
+                                
+                            }
+
+                        }
+                    }
+                }
+
+            }
+            catch (FileNotFoundException)
+            {
+
+            }
+            return curIndex;
+        }
+    }
 }

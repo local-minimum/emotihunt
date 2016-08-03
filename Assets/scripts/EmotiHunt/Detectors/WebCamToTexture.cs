@@ -45,10 +45,7 @@ public class WebCamToTexture : Detector {
         {
             StartCoroutine(Detect());
 
-        } else if (status == DetectorStatus.WaitingForScreenshot)
-        {
-            StartCoroutine(CaptureImage());
-        }
+        } 
     }
 
     IEnumerator<WaitForEndOfFrame> ShowCurrentImage()
