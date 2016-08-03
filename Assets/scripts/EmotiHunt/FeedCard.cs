@@ -5,7 +5,7 @@ public enum FeedCardType {Post, Notification};
 
 [Serializable]
 public class FeedCard  {
-
+    
     public FeedCardType cardType;
     public string imagePath;
     public List<Emoji> emojis = new List<Emoji>();
