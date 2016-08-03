@@ -20,14 +20,31 @@ public class Feed : MonoBehaviour {
 
     [SerializeField] Detector detector;
 
+    MobileUI mobileUI;
+
+    void Awake()
+    {
+        mobileUI = GetComponentInParent<MobileUI>();
+    }
+
     void OnEnable()
     {
         detector.OnDetectorStatusChange += HandleDetectorStatus;
+        mobileUI.OnModeChange += HandleModeChange;
     }
 
     void OnDisable()
     {
         detector.OnDetectorStatusChange -= HandleDetectorStatus;
+        mobileUI.OnModeChange -= HandleModeChange;
+    }
+
+    private void HandleModeChange(UIMode mode)
+    {
+        if (mode == UIMode.Feed)
+        {
+            mobileUI.SetStatus("Feed");
+        }
     }
 
     private void HandleDetectorStatus(Detector screen, DetectorStatus status)
