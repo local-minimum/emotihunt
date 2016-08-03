@@ -11,7 +11,7 @@ Get a rank.
 Roadmap towards release
 
 * Create feed of previous photos
- * A card with Image, Emoji tags below and the scores and date.
+ * :white_chekc_mark: A card with Image, Emoji tags below and the scores and date.
  * Scrollable area with cards (load 10 at a time)
  * A notification card which sums up scores for all photos on the emoji set
 * Let selection reset when (A) only 1 emoji remains or (B) week has passed.

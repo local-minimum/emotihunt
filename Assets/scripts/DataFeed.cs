@@ -145,7 +145,7 @@ public class DataFeed<T>
                 {
                     if (f.Length != 0)
                     {
-
+                        f.Position = 0;
                         using (BinaryReader br = new BinaryReader(f))
                         {
                             while (true)
@@ -180,6 +180,14 @@ public class DataFeed<T>
 
             }
             return curIndex;
+        }
+    }
+
+    public T Last
+    {
+        get
+        {
+            return Read(Count - 1, 1)[0];
         }
     }
 

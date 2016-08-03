@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
-using System.Linq;
+using System.Collections.Generic;
+
 
 public class Feed : MonoBehaviour {
 
@@ -11,7 +12,33 @@ public class Feed : MonoBehaviour {
     [SerializeField, Range(1, 10)]
     int readLength = 5;
 
-	void Start () {
+    [SerializeField]
+    Transform contentTransform;
+
+    [SerializeField]
+    ImageCard imageCardPrefab;
+
+    [SerializeField] Detector detector;
+
+    void OnEnable()
+    {
+        detector.OnDetectorStatusChange += HandleDetectorStatus;
+    }
+
+    void OnDisable()
+    {
+        detector.OnDetectorStatusChange -= HandleDetectorStatus;
+    }
+
+    private void HandleDetectorStatus(Detector screen, DetectorStatus status)
+    {
+        if (status == DetectorStatus.SavedResults)
+        {
+            PrependNewest();
+        }
+    }
+
+    void Start () {
         int l = Storage.Count;
         index = Mathf.Max(0, l - readLength);
         Debug.Log("Feed length: " + l);
@@ -19,18 +46,24 @@ public class Feed : MonoBehaviour {
         
         LoadBatch();
     }
-	
-	void Update () {
-	
-	}
 
     void LoadBatch()
     {
         try
         {
             var newPosts = Storage.Read(index, readLength);
-            Debug.Log("Loaded: " + newPosts.Count);
 
+            for (int i = newPosts.Count - 1; i > -1; i--)
+            {
+                FeedCard post = newPosts[i];
+                if (post.cardType == FeedCardType.Post)
+                {
+                    ImageCard iCard = Instantiate(imageCardPrefab);
+                    iCard.name = "(Archive) Photo " + (index + i + 1);
+                    iCard.transform.SetParent(contentTransform);
+                    iCard.Setup(post);
+                }
+            }
         }
         catch (System.IO.FileNotFoundException)
         {
@@ -41,5 +74,19 @@ public class Feed : MonoBehaviour {
         }
     }
 
+    public void PrependNewest()
+    {
+        FeedCard post = Storage.Last;
+        if (post.cardType == FeedCardType.Post)
+        {
+            ImageCard iCard = Instantiate(imageCardPrefab);
+            iCard.name = "(Shot) Photo " + Storage.Count;
+            iCard.transform.SetParent(contentTransform);
+            iCard.Setup(post);
+            (iCard.transform as RectTransform).SetAsFirstSibling();
+
+        }
+
+    }
 
 }

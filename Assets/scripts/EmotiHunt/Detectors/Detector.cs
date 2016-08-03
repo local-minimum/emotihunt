@@ -11,7 +11,7 @@ public delegate void ProgressEvent(ProgressType t, string message, float progres
 public delegate void EmojiProjectionEvent(EmojiProjection emojiProjection);
 
 public enum ProgressType {Detector, EmojiDB};
-public enum DetectorStatus {Filming, DetectingSetup, ReadyToDetect, Detecting, ShowingResults, Scoring, WaitingForScreenshot, Screenshotted, Inactive, PreIniting, Initing};
+public enum DetectorStatus {Filming, DetectingSetup, ReadyToDetect, Detecting, SavedResults, Scoring, WaitingForScreenshot, Screenshotted, Inactive, PreIniting, Initing};
 
 [Serializable]
 public struct Vector2Surrogate {
@@ -416,6 +416,7 @@ public abstract class Detector : MonoBehaviour {
         }
         data.scores.Add(scoreCollector.Bonus);
         Feed.Storage.Append(data);
+        Status = DetectorStatus.SavedResults;
         mobileUI.viewMode = UIMode.Feed;
     }
 

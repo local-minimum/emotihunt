@@ -27,7 +27,7 @@ public class EmojiProjection : MonoBehaviour {
     float _score = 0;
 
     [SerializeField]
-    List<DetectorStatus> visibleStates = new List<DetectorStatus>() { DetectorStatus.ShowingResults, DetectorStatus.Scoring, DetectorStatus.WaitingForScreenshot, DetectorStatus.Screenshotted };
+    List<DetectorStatus> visibleStates = new List<DetectorStatus>() { DetectorStatus.SavedResults, DetectorStatus.Scoring, DetectorStatus.WaitingForScreenshot, DetectorStatus.Screenshotted };
     public float score
     {
         get
