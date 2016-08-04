@@ -59,6 +59,7 @@ public class EmojiDB: ISerializable
         emojis = db.Values.ToList();
         checksum = CalculateChecksum();
         versionId++;
+        ResetSnapStatuses();
     }
 
     public Dictionary<string, Emoji> DB {
@@ -102,6 +103,7 @@ public class EmojiDB: ISerializable
         {
             dbLocation = Application.persistentDataPath + "/emoji.db";
         }
+        EmojiDB emojiDB;
 
         try
         {
@@ -122,10 +124,11 @@ public class EmojiDB: ISerializable
                 } else {
                     throw;
                 }
-                return CreateEmojiDb();
+                emojiDB = CreateEmojiDb();
+                emojiDB.ResetSnapStatuses();
+                return emojiDB;
             }
 
-            EmojiDB emojiDB;
             try
             {
                 emojiDB = RequestStreamer.Deserialize<EmojiDB>(stream);
@@ -136,6 +139,8 @@ public class EmojiDB: ISerializable
                 if (ex is ArgumentException || ex is EndOfStreamException)
                 {
                     emojiDB = CreateEmojiDb();
+                    emojiDB.ResetSnapStatuses();
+
                 }
                 else
                 {
@@ -150,7 +155,9 @@ public class EmojiDB: ISerializable
         {
 
             Debug.LogWarning(string.Format("Unexpected exception loading '{0}', {1}", dbLocation, ex));
-            return CreateEmojiDb();
+            emojiDB = CreateEmojiDb();
+            emojiDB.ResetSnapStatuses();
+            return emojiDB;
 
         }
     }
@@ -280,6 +287,45 @@ public class EmojiDB: ISerializable
         }
     }
 
+    static string prefKeyPattern = "Emoji.{0}";
+
+    public void ResetSnapStatuses()
+    {
+        foreach (string eName in emojis.Select(e => e.emojiName))
+        {
+            string key = string.Format(prefKeyPattern, eName);
+            if (PlayerPrefs.HasKey(key))
+            {
+                PlayerPrefs.DeleteKey(key);
+            }
+        }
+    }
+    public int Remaining
+    {
+        get
+        {
+            int n = 0;
+            for (int i=0, l=emojis.Count; i< l; i++)
+            {
+                if (!HasBeenPhotographed(emojis[i].emojiName))
+                {
+                    n++;
+                }
+            }
+            return n;
+        }
+    }
+
+    public bool HasBeenPhotographed(string eName)
+    {
+        return PlayerPrefs.GetInt(string.Format(prefKeyPattern, eName), 0) == 1;
+    }
+
+    public void SetPhotographed(string eName)
+    {
+        PlayerPrefs.SetInt(string.Format(prefKeyPattern, eName), 1);
+    }
+
     public Stream GenerateStreamFromString(string s)
     {
         MemoryStream stream = new MemoryStream();
@@ -295,7 +341,7 @@ public class EmojiDB: ISerializable
         emojis = template.emojis;
         checksum = template.checksum;
         template.versionId = versionId;
-
+        ResetSnapStatuses();
         if (!Valid)
             Debug.LogError("Data has been tampered with");
 

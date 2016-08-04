@@ -28,7 +28,6 @@ public class ImageCard : MonoBehaviour {
 
     void SetTextureFromFile(string location) {
         location = Application.persistentDataPath + "/" + location;
-        Debug.Log(location);
         Texture2D tex;
         tex = new Texture2D(2, 2);
         tex.LoadImage(File.ReadAllBytes(location));        

@@ -20,7 +20,13 @@ public class UIEmojiSelector : MonoBehaviour {
 
         set
         {
-            btn.interactable = !value;
+            if (Detector.emojiDB.HasBeenPhotographed(emoji.emojiName))
+            {
+                btn.interactable = false;
+            }
+            else {
+                btn.interactable = !value;
+            }
         }
     }
 

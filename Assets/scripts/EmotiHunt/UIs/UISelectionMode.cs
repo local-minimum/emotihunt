@@ -21,6 +21,9 @@ public class UISelectionMode : MonoBehaviour {
     [SerializeField]
     Button playButton;
 
+    [SerializeField]
+    Detector detector;
+
     void Awake()
     {
         selections = GetComponentsInChildren<UIEmojiSelected>();
@@ -35,11 +38,36 @@ public class UISelectionMode : MonoBehaviour {
     void OnEnable()
     {
         mobileUI.OnModeChange += HandleModeChange;
+        detector.OnDetectorStatusChange += HandleDetectorStatus;
     }
 
     void OnDisable()
     {
         mobileUI.OnModeChange -= HandleModeChange;
+        detector.OnDetectorStatusChange -= HandleDetectorStatus;
+    }
+
+    private void HandleDetectorStatus(Detector screen, DetectorStatus status)
+    {
+        
+        if (status == DetectorStatus.SavedResults)
+        {
+            SetSelectedAsPhotographed();
+            RemoveSelections();
+            if (Detector.emojiDB.Remaining < 2)
+            {
+                Debug.Log("Resetting emojis");
+                //TODO: Create card for completion
+
+                Detector.emojiDB.ResetSnapStatuses();
+
+                foreach (var selector in selectors)
+                {
+                    selector.Selected = false;
+                }
+
+            }
+        }
     }
 
     private void HandleModeChange(UIMode mode)
@@ -48,6 +76,15 @@ public class UISelectionMode : MonoBehaviour {
         {
             SetCurrentSelectionText();
         }
+    }
+
+    void SetSelectedAsPhotographed()
+    {
+        foreach (string eName in selectedEmojis)
+        {
+            Detector.emojiDB.SetPhotographed(eName);
+        }
+        selectedEmojis.Clear();
     }
 
     public IEnumerator<WaitForSeconds> SetupSelectors()
@@ -97,6 +134,14 @@ public class UISelectionMode : MonoBehaviour {
             }
         }        
         return false;
+    }
+
+    void RemoveSelections()
+    {
+        foreach(var selected in selections)
+        {
+            selected.Unset();
+        }
     }
 
     public void RemoveSelection(UIEmojiSelected selected)
