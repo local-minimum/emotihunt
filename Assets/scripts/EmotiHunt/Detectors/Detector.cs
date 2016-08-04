@@ -257,12 +257,8 @@ public abstract class Detector : MonoBehaviour {
         string ver = emojiDB.Version.ToString();
         Debug.Log("Version:" + ver);
         string location = Application.persistentDataPath + "/version.txt";
-        using (FileStream f = File.Open(location, FileMode.Create, FileAccess.Write))
-        {
-            StreamWriter sw = new StreamWriter(f);
-            sw.Write(ver);
-            f.Flush();
-        }
+        using (FileStream f = File.Open(location, FileMode.Create, FileAccess.Write));
+        File.WriteAllText(location, ver);
 
 #endif
     }

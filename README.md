@@ -19,12 +19,14 @@ Roadmap towards release
 * :white_check_mark: Create about page
 * :white_check_mark: UI icons update
 * :white_check_mark: Simply point to files on server rather than having software serve it.
-* Create at least 16 emojis pixelated 64x64.
- * Make detection padd with transparent pixels to not cropaway images
-* Make editor write out version ID directly to file to not make mistakes.
+* Create at least 16 (:white_check_mark: 5) emojis pixelated 64x64.
+ * :white_check_mark: Make detection pad with transparent pixels to not cropaway images
+* :white_check_mark: Make editor write out version ID directly to file to not make mistakes.
 
 ## Issues
 
+* On activating emojis need to clear image at once
+* Emoji get distorted because padded
 * Selection only works if starts up in selection mode
 * :white_check_mark: Server crashes too frequently (solved simpler serving solution).
 * Sometimes app gridlock crash while wating for server
