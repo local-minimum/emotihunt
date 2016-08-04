@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public enum FeedCardType {Post, Notification};
+public enum FeedCardType {Post, NotificationScoreCount, Notification};
 
 [Serializable]
 public class FeedCard  {
@@ -24,6 +24,16 @@ public class FeedCard  {
         card.message = message;
         card.cardType = FeedCardType.Notification;
         return card;
+    }
+
+    public static FeedCard CreateScoreCount(string message, int score)
+    {
+        var card = new FeedCard();
+        card.scores.Add(score);
+        card.message = message;
+        card.cardType = FeedCardType.NotificationScoreCount;
+        return card;
+
     }
 
     public static FeedCard CreatePost(string imagePath)

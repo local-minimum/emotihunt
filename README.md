@@ -14,7 +14,7 @@ Roadmap towards release
  * :white_chekc_mark: A card with Image, Emoji tags below and the scores and date.
  * Scrollable area with cards (load 10 at a time)
  * A notification card which sums up scores for all photos on the emoji set
-* Let selection reset when (A) only 1 emoji remains or (B) week has passed.
+* Let selection reset when :white_check_mark: (A) only 1 emoji remains or (B) week has passed.
 * :white_check_mark: Let feed have buttons to other pages
 * :white_check_mark: Create about page
 * :white_check_mark: UI icons update

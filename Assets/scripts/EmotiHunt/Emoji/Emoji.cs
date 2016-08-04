@@ -300,6 +300,24 @@ public class EmojiDB: ISerializable
             }
         }
     }
+
+    public int Taken
+    {
+        get
+        {
+            int n = 0;
+            for (int i = 0, l = emojis.Count; i < l; i++)
+            {
+                if (HasBeenPhotographed(emojis[i].emojiName))
+                {
+                    n++;
+                }
+            }
+            return n;
+
+        }
+    }
+
     public int Remaining
     {
         get
