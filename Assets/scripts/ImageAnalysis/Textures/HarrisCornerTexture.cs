@@ -19,6 +19,9 @@ namespace ImageAnalysis.Textures
         int filt1stride;
         int filt1height;
 
+        public int width;
+        public int height;
+
         int filt2stride;
         int filt2height;
         double kappa = 0.1;
@@ -43,24 +46,37 @@ namespace ImageAnalysis.Textures
             }
         }
 
-        public HarrisCornerTexture(Texture2D texture, float kappa, bool useAlpha=false) : base(texture)
+        public HarrisCornerTexture(Texture2D texture, float kappa, bool useAlpha=false, bool pad=false) : base(texture)
         {
             Kappa = kappa;
-            ConstructHelper(texture, useAlpha);
+            ConstructHelper(texture, useAlpha, pad);
         }
 
 
-        public HarrisCornerTexture(Texture2D texture, bool useAlpha=false) : base(texture)
+        public HarrisCornerTexture(Texture2D texture, bool useAlpha=false, bool pad=false) : base(texture)
         {
-            ConstructHelper(texture, useAlpha);
+            ConstructHelper(texture, useAlpha, pad);
         }
 
-        void ConstructHelper(Texture2D texture, bool useAlpha) {
+        void ConstructHelper(Texture2D texture, bool useAlpha, bool pad) {
+
+            width = texture.width;
+            height = texture.height;
+
+            if (pad)
+            {
+                width += sobelX.Kernel.GetLength(1) - 1;
+                width += gauss3Filter.Kernel.GetLength(1) - 1;
+
+                height += sobelX.Kernel.GetLength(0) - 1;
+                height += gauss3Filter.Kernel.GetLength(0) - 1;
+
+            }
 
             int channels = useAlpha ? 4 : 3;
 
-            filt1stride = texture.width - sobelX.Kernel.GetLength(1) + 1;
-            filt1height = texture.height - sobelX.Kernel.GetLength(0) + 1;
+            filt1stride = width - sobelX.Kernel.GetLength(1) + 1;
+            filt1height = height - sobelX.Kernel.GetLength(0) + 1;
             int filt1size = filt1height * filt1stride;
 
             edgeX = new double[filt1size, channels];

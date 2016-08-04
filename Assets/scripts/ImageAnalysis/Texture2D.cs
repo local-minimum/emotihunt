@@ -100,5 +100,16 @@ namespace ImageAnalysis
             tex.SetPixels(target);
             tex.Apply();
         }
+
+        public void SetPixelsVisible()
+        {
+            for (int i=0; i<target.Length; i++)
+            {
+                if (target[i].r > 0 || target[i].g > 0 || target[i].b > 0 || target[i].a > 0)
+                {
+                    target[i].a = 1f;
+                }
+            }
+        }
     }
 }

@@ -324,6 +324,38 @@ namespace ImageAnalysis
             return I;
         }
 
+        public static double[,] Texture2Double(Texture2D tex, int targetWidth, int targetHeight, bool useAlpha)
+        {
+            Color[] colors = tex.GetPixels();
+            double[,] I = new double[targetWidth * targetHeight, useAlpha ? 4 : 3];
+            Color2Double(ref colors, ref I, tex.width, targetWidth, (targetHeight - tex.height) / 2);
+            return I;
+        }
+
+        public static void Color2Double(ref Color[] colors, ref double[,] I, int sourceStride, int targetStride, int targetYOffset)
+        {
+            int sourceHeight = colors.Length / sourceStride;
+            int targetXOffset = (targetStride - sourceStride) / 2;
+
+            bool hasAlpha = I.GetLength(1) == 4;
+            for (int y=0; y<sourceHeight; y++)
+            {
+                for (int x=0; x<sourceStride; x++)
+                {
+                    int sourcePos = x + y * sourceStride;
+                    int targetPos = (x + targetXOffset) + (y + targetYOffset) * targetStride;
+                    I[targetPos, 0] = colors[sourcePos].r;
+                    I[targetPos, 1] = colors[sourcePos].g;
+                    I[targetPos, 2] = colors[sourcePos].b;
+                    if (hasAlpha)
+                    {
+                        I[targetPos, 3] = colors[sourcePos].a;
+                    }
+
+                }
+            }
+        }
+
         public static void Color2Double(ref Color[] colors, ref double[,] I)
         {
             bool hasAlpha = I.GetLength(1) == 4;

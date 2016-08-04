@@ -32,6 +32,9 @@ public class EditorUI : MonoBehaviour {
     [SerializeField]
     bool useAlpha = true;
 
+    [SerializeField]
+    bool pad = true;
+
     List<UICornerMarker> corners;
 
     public void SetName(Text text)
@@ -64,8 +67,10 @@ public class EditorUI : MonoBehaviour {
 
         HarrisCornerTexture harrisCorner = GetCornerTexture(tex);
 
-        double[,] I = ImageAnalysis.Convolve.Texture2Double(tex, useAlpha);
-        harrisCorner.ConvolveAndApply(I, tex.width);
+        double[,] I = ImageAnalysis.Convolve.Texture2Double(tex, harrisCorner.width, harrisCorner.height, useAlpha);
+        harrisCorner.Convolve(I, tex.width);
+        harrisCorner.SetPixelsVisible();
+        harrisCorner.ApplyTargetToTexture(harrisCorner.Texture);
         ImageAnalysis.Coordinate[] coordinates = harrisCorner.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance);
         int offset = (tex.width - harrisCorner.ResponseStride) / 2;
         SetEmojiData(coordinates, I, tex, offset);
@@ -148,7 +153,7 @@ public class EditorUI : MonoBehaviour {
             new Rect(0, 0, source.width, source.height), 
             Vector2.one * 0.5f);
 
-        HarrisCornerTexture cornerTex = new HarrisCornerTexture(cornerImg.sprite.texture, useAlpha);
+        HarrisCornerTexture cornerTex = new HarrisCornerTexture(cornerImg.sprite.texture, useAlpha, pad);
         return cornerTex;
     }
 
@@ -159,6 +164,7 @@ public class EditorUI : MonoBehaviour {
     
     public void Start()
     {
+        Detector.emojiDB = EmojiDB.LoadEmojiDB();
         string names = Detector.emojiDB.Names;
         Debug.Log(string.IsNullOrEmpty(names) ? "Empty DB" : names);
         corners = GetComponentsInChildren<UICornerMarker>().ToList();
