@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ImageAnalysis.Textures;
 
 using System;
+using System.IO;
 
 public delegate void DetectorStatusEvent(Detector screen, DetectorStatus status);
 public delegate void EmojiMatchEvent(int index, Vector2[] corners, Emoji emoji);
@@ -250,6 +251,20 @@ public abstract class Detector : MonoBehaviour {
     {        
         emojiDB.Set(emoji);
         EmojiDB.SaveEmojiDB(emojiDB);
+
+#if UNITY_EDITOR
+
+        string ver = emojiDB.Version.ToString();
+        Debug.Log("Version:" + ver);
+        string location = Application.persistentDataPath + "/version.txt";
+        using (FileStream f = File.Open(location, FileMode.Create, FileAccess.Write))
+        {
+            StreamWriter sw = new StreamWriter(f);
+            sw.Write(ver);
+            f.Flush();
+        }
+
+#endif
     }
 
     protected abstract void _EdgeDrawCalculation();

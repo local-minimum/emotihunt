@@ -145,7 +145,7 @@ namespace ImageAnalysis
         {
             for (int i=0; i<currentIndex; i++)
             {
-                if (Mathf.Abs(pos % stride - taken[i, 0] % stride) < minDistance ||  Mathf.Abs(pos / stride - taken[i, 0] / stride) < minDistance)
+                if (Mathf.Abs(pos % stride - taken[i, 0] % stride) < minDistance &&  Mathf.Abs(pos / stride - taken[i, 0] / stride) < minDistance)
                 {
                     return false;
                 }

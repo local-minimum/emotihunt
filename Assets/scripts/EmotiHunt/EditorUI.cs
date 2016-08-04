@@ -68,7 +68,10 @@ public class EditorUI : MonoBehaviour {
         HarrisCornerTexture harrisCorner = GetCornerTexture(tex);
 
         double[,] I = ImageAnalysis.Convolve.Texture2Double(tex, harrisCorner.width, harrisCorner.height, useAlpha);
-        harrisCorner.Convolve(I, tex.width);
+        foreach(float f in harrisCorner.Convolve(I, harrisCorner.width))
+        {
+            Debug.Log(f);
+        }
         harrisCorner.SetPixelsVisible();
         harrisCorner.ApplyTargetToTexture(harrisCorner.Texture);
         ImageAnalysis.Coordinate[] coordinates = harrisCorner.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance);
@@ -153,6 +156,8 @@ public class EditorUI : MonoBehaviour {
             new Rect(0, 0, source.width, source.height), 
             Vector2.one * 0.5f);
 
+        cornerImg.sprite.name = string.Format("Result img ({0}, {1}), {2}, {3}", source.width, source.height, useAlpha ? "Alpha included" : "No alpha", pad ? "Padded" : "Shrinking");
+
         HarrisCornerTexture cornerTex = new HarrisCornerTexture(cornerImg.sprite.texture, useAlpha, pad);
         return cornerTex;
     }
@@ -165,6 +170,7 @@ public class EditorUI : MonoBehaviour {
     public void Start()
     {
         Detector.emojiDB = EmojiDB.LoadEmojiDB();
+        Debug.Log("DB Version: " + Detector.emojiDB.Version);
         string names = Detector.emojiDB.Names;
         Debug.Log(string.IsNullOrEmpty(names) ? "Empty DB" : names);
         corners = GetComponentsInChildren<UICornerMarker>().ToList();
