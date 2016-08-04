@@ -29,7 +29,7 @@ public class EmojiDB: ISerializable
 {
     string baseURI = "http://local-minimum.unknownincubator.com";
 
-    static string dbLocation = Application.persistentDataPath + "/emoji.db";
+    static string dbLocation;
 
     List<Emoji> emojis = new List<Emoji>();
     string checksum;
@@ -98,6 +98,11 @@ public class EmojiDB: ISerializable
 
     public static EmojiDB LoadEmojiDB()
     {
+        if (dbLocation == null || dbLocation == "")
+        {
+            dbLocation = Application.persistentDataPath + "/emoji.db";
+        }
+
         try
         {
             Stream stream = null;
@@ -179,6 +184,10 @@ public class EmojiDB: ISerializable
 
     public EmojiDB()
     {
+        if (dbLocation == null || dbLocation == "")
+        {
+            dbLocation = Application.persistentDataPath + "/emoji.db";
+        }
         emojis = new List<Emoji>();
         checksum = null;
         versionId = -1;

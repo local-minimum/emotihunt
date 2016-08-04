@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class Feed : MonoBehaviour {
 
-    public static DataFeed<FeedCard> Storage = new DataFeed<FeedCard>(Application.persistentDataPath + "/feed.bin");
+    public static DataFeed<FeedCard> Storage;
 
     [SerializeField]
     int index = 0;
@@ -29,6 +29,7 @@ public class Feed : MonoBehaviour {
 
     void OnEnable()
     {
+        Storage = new DataFeed<FeedCard>(Application.persistentDataPath + "/feed.bin");
         detector.OnDetectorStatusChange += HandleDetectorStatus;
         mobileUI.OnModeChange += HandleModeChange;
     }
@@ -69,7 +70,7 @@ public class Feed : MonoBehaviour {
         try
         {
             var newPosts = Storage.Read(index, readLength);
-
+            Debug.Log("Batch size: " + newPosts.Count);
             for (int i = newPosts.Count - 1; i > -1; i--)
             {
                 FeedCard post = newPosts[i];

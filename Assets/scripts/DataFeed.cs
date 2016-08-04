@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
+
 public class DataFeed<T>
 {
 
@@ -160,10 +161,10 @@ public class DataFeed<T>
                                 }
                                 int dataSize = GetBytesAsInt(sizeBuffer);
                                 pos += 4;
-                                long sought = br.BaseStream.Seek(dataSize, SeekOrigin.Current);
+                                long filePos = br.BaseStream.Seek(dataSize, SeekOrigin.Current);
                                 pos += dataSize;
                                 curIndex++;
-                                if (sought != dataSize || pos >= f.Length)
+                                if (pos != filePos || pos >= f.Length)
                                 {
                                     break;
                                 }

@@ -22,11 +22,11 @@ public class UITextEffect : MonoBehaviour {
     [SerializeField, Range(0, 1)]
     float waitAnimationPerChar = 1;
 
-    [SerializeField]
-    string fadeCharacters = "+-.";
+    //[SerializeField]
+    //string fadeCharacters = "+-.";
 
-    [SerializeField, Range(0, 1)]
-    float fadeAnimationPerChar = 1;
+    //[SerializeField, Range(0, 1)]
+    //float fadeAnimationPerChar = 1;
 
     [SerializeField, Range(0, 10)]
     float speed = 1;
