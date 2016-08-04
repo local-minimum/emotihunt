@@ -67,6 +67,7 @@ public class EditorUI : MonoBehaviour {
 
         HarrisCornerTexture harrisCorner = GetCornerTexture(tex);
 
+        double[,] sourceImg = ImageAnalysis.Convolve.Texture2Double(tex, useAlpha);
         double[,] I = ImageAnalysis.Convolve.Texture2Double(tex, harrisCorner.width, harrisCorner.height, useAlpha);
         foreach(float f in harrisCorner.Convolve(I, harrisCorner.width))
         {
@@ -76,7 +77,8 @@ public class EditorUI : MonoBehaviour {
         harrisCorner.ApplyTargetToTexture(harrisCorner.Texture);
         ImageAnalysis.Coordinate[] coordinates = harrisCorner.LocateCornersAsCoordinates(nCorners, aheadCost, minDistance);
         int offset = (tex.width - harrisCorner.ResponseStride) / 2;
-        SetEmojiData(coordinates, I, tex, offset);
+        Debug.Log("Offset: " + offset);
+        SetEmojiData(coordinates, sourceImg, tex, offset);
         MarkCorners(coordinates, offset);
         button.interactable = true;
     }

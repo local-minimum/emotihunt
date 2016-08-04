@@ -10,9 +10,9 @@ Get a rank.
 
 Roadmap towards release
 
-* Create feed of previous photos
- * :white_chekc_mark: A card with Image, Emoji tags below and the scores and date.
- * Scrollable area with cards (load 10 at a time)
+* :white_check_mark: Create feed of previous photos
+ * :white_check_mark: A card with Image, Emoji tags below and the scores and date.
+ * :white_check_mark: Scrollable area with cards (load 10 at a time)
  * A notification card which sums up scores for all photos on the emoji set
 * Let selection reset when :white_check_mark: (A) only 1 emoji remains or (B) week has passed.
 * :white_check_mark: Let feed have buttons to other pages
@@ -25,8 +25,11 @@ Roadmap towards release
 
 ## Issues
 
-* On activating emojis need to clear image at once
-* Emoji get distorted because padded
+* Feed doesn't scroll
+* Feed doesn't load more at end of scroll
+* Cards don't get right size
+* :white_check_mark: On activating emojis need to clear image at once
+* :white_check_mark: Emoji get distorted because padded
 * Selection only works if starts up in selection mode
 * :white_check_mark: Server crashes too frequently (solved simpler serving solution).
 * Sometimes app gridlock crash while wating for server

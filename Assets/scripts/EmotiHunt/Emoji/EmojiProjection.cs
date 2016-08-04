@@ -79,15 +79,16 @@ public class EmojiProjection : MonoBehaviour {
     private void HandleDetectorStatus(Detector screen, DetectorStatus status)
     {
 
-        selfImage.enabled = visibleStates.Contains(status);
+        if (!visibleStates.Contains(status))
+        {
+            selfImage.enabled = false;
+        }
     }
 
     private void HandleNewCorners(int index, Vector2[] corners, Emoji emoji)
     {
-        if (index != trackingEmojiIndex)
+        if (index != trackingEmojiIndex) 
             return;
-
-        //TODO: Could be in coroutine!
 
         SetSelfImage(emoji);
 
