@@ -3,11 +3,42 @@ using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
+/// <summary>
+/// A binary searchable file object serializer.
+/// 
+/// <example>
+/// Illustration of how to serialize an object.
+/// <code>
+/// [Serializable]
+/// class Post {
+///     public string text;
+///     public DateTime date;
+/// }
+/// 
+/// class Feed {
+///     DataFeed<Post> _storage = new DataFeed<Post>("some/location/feed.bin");
+///     void Append(Post post) {
+///         _storage.Append(post);
+///     }
+/// }
+/// </code>
+/// </example>
+/// 
+/// </summary>
+/// <typeparam name="T">Any serializable type. I.e. a class prefixed with [Serializable]</typeparam>
 public class DataFeed<T>
 {
-
+    
     public delegate void FeedAppended(T item);
 
+    /// <summary>
+    /// Event that is fired when something is appended.
+    /// 
+    /// <remarks>
+    /// Using the saves reading and deserializing the object and
+    /// therefore saves some compute.
+    /// </remarks>
+    /// </summary>
     public event FeedAppended OnFeedAppended;
 
     string location;
@@ -21,12 +52,17 @@ public class DataFeed<T>
     {
         location = storageLocation;
 
+        //Creates an empty file at the specified if it doesn't exist.
         if (!File.Exists(location))
         {
             using (FileStream f = File.Open(location, FileMode.Create, FileAccess.Write));
         }
     }
 
+    /// <summary>
+    /// Appends the item to the end of the feed-file
+    /// </summary>
+    /// <param name="item">Item to serialize into the file</param>
     public void Append(T item)
     {
         //Serialize the object
@@ -43,7 +79,7 @@ public class DataFeed<T>
         byte[] bytes = new byte[4 + serializedObj.Length];
 
         //Add size of serialized object to first 32 positions
-        Array.Copy(GetIntAsBytes(serializedObj.Length), bytes, 4);
+        Array.Copy(BitConverter.GetBytes(serializedObj.Length), bytes, 4);
 
         //Add serialized object
         Array.Copy(serializedObj, 0, bytes, 4, serializedObj.Length);
@@ -63,17 +99,15 @@ public class DataFeed<T>
         }
     }
 
-
-    static byte[] GetIntAsBytes(int n)
-    {
-        return BitConverter.GetBytes(n);
-    }
-
-    static int GetBytesAsInt(byte[] b)
-    {
-        return BitConverter.ToInt32(b, 0);
-    }
-
+    /// <summary>
+    /// Reads a number of items into a list starting at a certain index.
+    /// 
+    /// Note: The returned list may be shorter than the requested size if
+    /// the end of file is reached
+    /// </summary>
+    /// <param name="index">Starting index, included, 0=first</param>
+    /// <param name="size">Number of items</param>
+    /// <returns>A list of the requested items</returns>
     public List<T> Read(int index, int size)
     {
 
@@ -100,7 +134,7 @@ public class DataFeed<T>
                                     "File {0} had truncated SizeBuffer at index {1}, data position {2}, only {3} bytes (should have been 4)",
                                     location, curIndex, pos, sizeBuffer.Length));
                         }
-                        int dataSize = GetBytesAsInt(sizeBuffer);
+                        int dataSize = BitConverter.ToInt32(sizeBuffer, 0);
                         pos += 4;
 
                         if (curIndex >= index)
@@ -146,6 +180,10 @@ public class DataFeed<T>
         return objects;
     }
 
+    /// <summary>
+    /// Browses through the items of the file.
+    /// </summary>
+    /// <returns>Enumberable of all the items</returns>
     public IEnumerable<T> Browse()
     {
         int curIndex = 0;
@@ -168,7 +206,7 @@ public class DataFeed<T>
                                     "File {0} had truncated SizeBuffer at index {1}, data position {2}, only {3} bytes (should have been 4)",
                                     location, curIndex, pos, sizeBuffer.Length));
                         }
-                        int dataSize = GetBytesAsInt(sizeBuffer);
+                        int dataSize = BitConverter.ToInt32(sizeBuffer, 0);
                         pos += 4;
 
                         byte[] dataBuffer = br.ReadBytes(dataSize);
@@ -207,6 +245,9 @@ public class DataFeed<T>
         }
     }
 
+    /// <summary>
+    /// Number of items in file.
+    /// </summary>
     public int Count
     {
         get
@@ -233,7 +274,7 @@ public class DataFeed<T>
                                             "File {0} had truncated SizeBuffer at index {1}, data position {2}, only {3} bytes (should have been 4)",
                                             location, curIndex, pos, sizeBuffer.Length));
                                 }
-                                int dataSize = GetBytesAsInt(sizeBuffer);
+                                int dataSize = BitConverter.ToInt32(sizeBuffer, 0);
                                 pos += 4;
                                 long filePos = br.BaseStream.Seek(dataSize, SeekOrigin.Current);
                                 pos += dataSize;
@@ -258,6 +299,9 @@ public class DataFeed<T>
         }
     }
 
+    /// <summary>
+    /// The last item of the file
+    /// </summary>
     public T Last
     {
         get
@@ -266,6 +310,9 @@ public class DataFeed<T>
         }
     }
 
+    /// <summary>
+    /// The first item of the file
+    /// </summary>
     public T First
     {
         get
@@ -274,6 +321,9 @@ public class DataFeed<T>
         }
     }
 
+    /// <summary>
+    /// Wipes the content of the file
+    /// </summary>
     public void Wipe()
     {
         using (FileStream f = File.Open(location, FileMode.Create, FileAccess.Write));
