@@ -6,6 +6,8 @@ using System.Runtime.Serialization.Formatters.Binary;
 /// <summary>
 /// A binary searchable file object serializer.
 /// 
+/// <remark>The VersionDeserializationBinder is house in the RequestStreamer module (Also really neat stuff)</remark>
+/// 
 /// <example>
 /// Illustration of how to serialize an object.
 /// <code>
