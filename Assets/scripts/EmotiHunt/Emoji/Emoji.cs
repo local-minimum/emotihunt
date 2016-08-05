@@ -33,7 +33,7 @@ public class EmojiDB: ISerializable
 
     List<Emoji> emojis = new List<Emoji>();
     string checksum;
-    long versionId;
+    long versionId;    
 
     public long Version
     {

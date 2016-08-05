@@ -2,7 +2,13 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 
+public enum BoardEvent {Updated, ResetAge, ResetDone};
+
+public delegate void NewBoard(BoardEvent boardEvent, int fromIndex);
+
 public class UISelectionMode : MonoBehaviour {
+
+    public event NewBoard OnNewBoard;
 
     public static List<string> selectedEmojis = new List<string>();
 
@@ -24,15 +30,28 @@ public class UISelectionMode : MonoBehaviour {
     [SerializeField]
     Detector detector;
 
+    [SerializeField]
+    Feed feed;
+
+    long activeEmojiVersion;
+
     void Awake()
     {
         selections = GetComponentsInChildren<UIEmojiSelected>();
         mobileUI = GetComponentInParent<MobileUI>();
+        activeEmojiVersion = Detector.emojiDB.Version;
     }
 
     void Start()
     {
         StartCoroutine(SetupSelectors());
+
+        int idx;
+        FeedCard recentScoring = feed.GetMostRecent(FeedCardType.NotificationScoreCount, out idx);
+        if (recentScoring != null && recentScoring.Age > 7)
+        {
+            BoardEventAction(BoardEvent.ResetAge, idx);
+        }
     }
 
     void OnEnable()
@@ -54,20 +73,46 @@ public class UISelectionMode : MonoBehaviour {
         {
             SetSelectedAsPhotographed();
             RemoveSelections();
-            if (Detector.emojiDB.Remaining < 2)
+            
+            if (Detector.emojiDB.Version > activeEmojiVersion)
             {
-                Debug.Log("Resetting emojis");
-                //TODO: Create card for completion
+                int idx;
+                feed.GetMostRecent(FeedCardType.NotificationScoreCount, out idx);
 
-                Detector.emojiDB.ResetSnapStatuses();
+                Debug.Log("Emojis updated");
+                BoardEventAction(BoardEvent.Updated, idx);
 
-                foreach (var selector in selectors)
-                {
-                    selector.Selected = false;
-                }
 
             }
+            else if (Detector.emojiDB.Remaining < 2)
+            {
+                int idx;
+                feed.GetMostRecent(FeedCardType.NotificationScoreCount, out idx);
+
+                Debug.Log("Board completed");
+                BoardEventAction(BoardEvent.ResetDone, idx);
+                
+            }
+
+
+            
         }
+    }
+
+    void BoardEventAction(BoardEvent eventType, int sinceIndex)
+    {
+        Detector.emojiDB.ResetSnapStatuses();
+
+        foreach (var selector in selectors)
+        {
+            selector.Selected = false;
+        }
+
+        if (OnNewBoard != null)
+        {
+            OnNewBoard(eventType, sinceIndex);
+        }
+
     }
 
     private void HandleModeChange(UIMode mode)
@@ -95,8 +140,6 @@ public class UISelectionMode : MonoBehaviour {
         {
             yield return new WaitForSeconds(waitTime);
         }
-
-        Debug.Log(Detector.emojiDB.Version);
 
         var db = Detector.emojiDB.DB;
 

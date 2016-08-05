@@ -122,7 +122,7 @@ public class DataFeed<T>
                         }
                         pos += dataSize;
                         curIndex++;
-                        if (f.Length == pos)
+                        if (f.Length <= pos)
                         {
                             break;
                         }
@@ -131,6 +131,67 @@ public class DataFeed<T>
             }
         }
         return objects;
+    }
+
+    public IEnumerable<T> Browse()
+    {
+        int curIndex = 0;
+        long pos = 0;
+
+        using (FileStream f = File.Open(location, FileMode.Open, FileAccess.Read))
+        {
+            if (f.Length != 0)
+            {
+
+                using (BinaryReader br = new BinaryReader(f))
+                {
+                    while (true)
+                    {
+                        byte[] sizeBuffer = br.ReadBytes(4);
+                        if (sizeBuffer.Length != 4)
+                        {
+                            throw new DataMisalignedException(
+                                string.Format(
+                                    "File {0} had truncated SizeBuffer at index {1}, data position {2}, only {3} bytes (should have been 4)",
+                                    location, curIndex, pos, sizeBuffer.Length));
+                        }
+                        int dataSize = GetBytesAsInt(sizeBuffer);
+                        pos += 4;
+
+                        byte[] dataBuffer = br.ReadBytes(dataSize);
+
+                        if (dataBuffer.Length != dataSize)
+                        {
+                            throw new DataMisalignedException(
+                                string.Format(
+                                    "File {0} had truncated Serialized Object at index {1}, data position {2}, only {3} bytes (should have been {4})",
+                                    location, curIndex, pos, dataBuffer.Length, dataSize));
+
+                        }
+
+                        BinaryFormatter bformatter = new BinaryFormatter();
+                        bformatter.Binder = new VersionDeserializationBinder();
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            BinaryWriter bw = new BinaryWriter(ms);
+                            bw.Write(dataBuffer);
+                            ms.Flush();
+                            ms.Position = 0;
+                            yield return (T) bformatter.Deserialize(ms);
+                        }
+
+
+
+                        pos += dataSize;
+                        curIndex++;
+                        if (f.Length <= pos)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public int Count

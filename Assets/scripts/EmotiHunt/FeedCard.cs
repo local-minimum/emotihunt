@@ -11,6 +11,7 @@ public class FeedCard  {
     public List<Emoji> emojis = new List<Emoji>();
     public List<int> scores = new List<int>();
     public string message;
+    public DateTime date;
 
     public void Add(Emoji emoji, int score)
     {
@@ -23,6 +24,7 @@ public class FeedCard  {
         var card = new FeedCard();
         card.message = message;
         card.cardType = FeedCardType.Notification;
+        card.date = DateTime.UtcNow;
         return card;
     }
 
@@ -32,6 +34,7 @@ public class FeedCard  {
         card.scores.Add(score);
         card.message = message;
         card.cardType = FeedCardType.NotificationScoreCount;
+        card.date = DateTime.UtcNow;
         return card;
 
     }
@@ -41,6 +44,20 @@ public class FeedCard  {
         var card = new FeedCard();
         card.imagePath = imagePath;
         card.cardType = FeedCardType.Post;
+        card.date = DateTime.UtcNow;
         return card;
+    }
+
+    public double TotalDaysSince(FeedCard other)
+    {
+        return (other.date - date).TotalDays;
+    }
+
+    public double Age
+    {
+        get {
+            return (DateTime.UtcNow - date).TotalDays;
+        }
+
     }
 }

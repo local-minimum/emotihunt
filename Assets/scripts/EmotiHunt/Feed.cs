@@ -1,10 +1,22 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
+using System.Linq;
 
 
 public class Feed : MonoBehaviour {
 
-    public static DataFeed<FeedCard> Storage;
+    static DataFeed<FeedCard> _Storage;
+
+    public static DataFeed<FeedCard> Storage
+    {
+        get
+        {
+            if (_Storage == null)
+            {
+                _Storage = new DataFeed<FeedCard>(Application.persistentDataPath + "/feed.bin");
+            }
+            return _Storage;
+        }
+    }
 
     [SerializeField]
     int index = 0;
@@ -18,7 +30,11 @@ public class Feed : MonoBehaviour {
     [SerializeField]
     ImageCard imageCardPrefab;
 
-    [SerializeField] Detector detector;
+    [SerializeField]
+    Detector detector;
+
+    [SerializeField]
+    UISelectionMode selectionMode;
 
     MobileUI mobileUI;
 
@@ -29,15 +45,40 @@ public class Feed : MonoBehaviour {
 
     void OnEnable()
     {
-        Storage = new DataFeed<FeedCard>(Application.persistentDataPath + "/feed.bin");
         detector.OnDetectorStatusChange += HandleDetectorStatus;
         mobileUI.OnModeChange += HandleModeChange;
+        selectionMode.OnNewBoard += HandleNewBoard;
     }
 
     void OnDisable()
     {
         detector.OnDetectorStatusChange -= HandleDetectorStatus;
         mobileUI.OnModeChange -= HandleModeChange;
+        selectionMode.OnNewBoard -= HandleNewBoard;
+    }
+
+    private void HandleNewBoard(BoardEvent boardEvent, int scoreFrom)
+    {
+        int score = 0;
+        foreach (FeedCard card in Storage.Read(scoreFrom, Storage.Count - scoreFrom))
+        {
+            score += card.scores.Sum();
+        }
+
+        string message = "";
+        if (boardEvent == BoardEvent.Updated) {
+            message = "New emojis terminated active round";
+        } else if (boardEvent == BoardEvent.ResetAge)
+        {
+            message = "Time's up (more than 7 days past since board got started)";
+        } else if (boardEvent == BoardEvent.ResetDone)
+        {
+            message = "Round completed!";
+        }
+        
+        
+        Storage.Append(FeedCard.CreateScoreCount(message, score));
+        PrependNewest();
     }
 
     private void HandleModeChange(UIMode mode)
@@ -105,6 +146,23 @@ public class Feed : MonoBehaviour {
 
         }
 
+    }
+
+    public FeedCard GetMostRecent(FeedCardType cardType, out int index)
+    {
+        index = 0;
+        int idx = 0;
+        FeedCard last = null;
+        foreach (FeedCard card in Storage.Browse())
+        {
+            if (card.cardType == cardType)
+            {
+                last = card;
+                index = idx;
+            }
+            idx++;
+        }
+        return last;
     }
 
 }

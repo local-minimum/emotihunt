@@ -6,15 +6,13 @@ Let the object recognition system of the game decide what you looked at.
 Get a score for how good you did.
 Get a rank.
 
-## Current status
-
-Roadmap towards release
+## Roadmap towards release
 
 * :white_check_mark: Create feed of previous photos
  * :white_check_mark: A card with Image, Emoji tags below and the scores and date.
  * :white_check_mark: Scrollable area with cards (load 10 at a time)
  * A notification card which sums up scores for all photos on the emoji set
-* Let selection reset when :white_check_mark: (A) only 1 emoji remains or (B) week has passed.
+* :white_check_mark: Let selection reset when :white_check_mark: (A) only 1 emoji remains or :white_check_mark: (B) week has passed.
 * :white_check_mark: Let feed have buttons to other pages
 * :white_check_mark: Create about page
 * :white_check_mark: UI icons update
@@ -30,7 +28,7 @@ Roadmap towards release
 * Cards don't get right size
 * :white_check_mark: On activating emojis need to clear image at once
 * :white_check_mark: Emoji get distorted because padded
-* Selection only works if starts up in selection mode
+* Selection only works if starts up in selection mode (it's OK).
 * :white_check_mark: Server crashes too frequently (solved simpler serving solution).
-* Sometimes app gridlock crash while wating for server
+* (3 days without) Sometimes app gridlock crash while wating for server
 
