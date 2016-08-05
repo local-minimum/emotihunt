@@ -132,6 +132,7 @@ public class EmojiDB: ISerializable
             try
             {
                 emojiDB = RequestStreamer.Deserialize<EmojiDB>(stream);
+                Debug.Log(string.Format("Loaded emojis at {0}, version {1}", EmojiDB.dbLocation, emojiDB.versionId));
             }
             catch (Exception ex)
             {
@@ -189,7 +190,7 @@ public class EmojiDB: ISerializable
 
     }
 
-    public EmojiDB()
+    private EmojiDB()
     {
         if (dbLocation == null || dbLocation == "")
         {
@@ -244,6 +245,7 @@ public class EmojiDB: ISerializable
         if (onlineVersion > versionId)
         {
 
+            Debug.Log(string.Format("Replacing emoji version {0} with {1}", versionId, onlineVersion));
             yield return new KeyValuePair<string, float>("Downloading data...", 0);
 
             response = RequestStreamer.Create(baseURI + "/emojihunt/data");
@@ -358,7 +360,7 @@ public class EmojiDB: ISerializable
     {
         emojis = template.emojis;
         checksum = template.checksum;
-        template.versionId = versionId;
+        versionId = template.versionId;
         ResetSnapStatuses();
         if (!Valid)
             Debug.LogError("Data has been tampered with");

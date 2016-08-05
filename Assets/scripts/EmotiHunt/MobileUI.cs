@@ -83,6 +83,9 @@ public class MobileUI : MonoBehaviour {
         {
             _viewMode = UIMode.Feed;
 
+        } else if (_viewMode  == UIMode.Quitting)
+        {
+            QuitApp();
         }
         else
         {
@@ -94,8 +97,6 @@ public class MobileUI : MonoBehaviour {
             OnModeChange(_viewMode);
         }
 
-        if (_viewMode == UIMode.Quitting)
-            QuitApp();
     }
 
     void QuitApp() { 
