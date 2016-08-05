@@ -31,6 +31,9 @@ public class Feed : MonoBehaviour {
     ImageCard imageCardPrefab;
 
     [SerializeField]
+    NotificationCard notificationCardPrefab;
+
+    [SerializeField]
     Detector detector;
 
     [SerializeField]
@@ -45,17 +48,40 @@ public class Feed : MonoBehaviour {
 
     void OnEnable()
     {
-        detector.OnDetectorStatusChange += HandleDetectorStatus;
+        Storage.OnFeedAppended += Prepend;
         mobileUI.OnModeChange += HandleModeChange;
         selectionMode.OnNewBoard += HandleNewBoard;
     }
 
     void OnDisable()
-    {
-        detector.OnDetectorStatusChange -= HandleDetectorStatus;
+    { 
         mobileUI.OnModeChange -= HandleModeChange;
         selectionMode.OnNewBoard -= HandleNewBoard;
+        Storage.OnFeedAppended -= Prepend;
     }
+
+    public void Prepend(FeedCard item)
+    {
+        if (item.cardType == FeedCardType.Post)
+        {
+            ImageCard iCard = Instantiate(imageCardPrefab);
+            iCard.name = "(Shot) Photo " + Storage.Count;
+            iCard.transform.SetParent(contentTransform);
+            iCard.Setup(item);
+            (iCard.transform as RectTransform).SetAsFirstSibling();
+
+        }
+        else
+        {
+            NotificationCard nCard = Instantiate(notificationCardPrefab);
+            nCard.name = "(Live) " + item.cardType;
+            nCard.transform.SetParent(contentTransform);
+            nCard.Setup(item);
+            (nCard.transform as RectTransform).SetAsFirstSibling();
+        }
+
+    }
+
 
     private void HandleNewBoard(BoardEvent boardEvent, int scoreFrom)
     {
@@ -77,8 +103,7 @@ public class Feed : MonoBehaviour {
         }
         
         
-        Storage.Append(FeedCard.CreateScoreCount(message, score));
-        PrependNewest();
+        Storage.Append(FeedCard.CreateScoreCount(message, score));        
     }
 
     private void HandleModeChange(UIMode mode)
@@ -86,14 +111,6 @@ public class Feed : MonoBehaviour {
         if (mode == UIMode.Feed)
         {
             mobileUI.SetStatus("Feed");
-        }
-    }
-
-    private void HandleDetectorStatus(Detector screen, DetectorStatus status)
-    {
-        if (status == DetectorStatus.SavedResults)
-        {
-            PrependNewest();
         }
     }
 
@@ -121,6 +138,12 @@ public class Feed : MonoBehaviour {
                     iCard.name = "(Archive) Photo " + (index + i + 1);
                     iCard.transform.SetParent(contentTransform);
                     iCard.Setup(post);
+                } else
+                {
+                    NotificationCard nCard = Instantiate(notificationCardPrefab);
+                    nCard.name = "(Archive) " + post.cardType;
+                    nCard.transform.SetParent(contentTransform);
+                    nCard.Setup(post);
                 }
             }
         }
@@ -131,21 +154,6 @@ public class Feed : MonoBehaviour {
         {
             Debug.LogError("Feed is corrupt, will be wiped");
         }
-    }
-
-    public void PrependNewest()
-    {
-        FeedCard post = Storage.Last;
-        if (post.cardType == FeedCardType.Post)
-        {
-            ImageCard iCard = Instantiate(imageCardPrefab);
-            iCard.name = "(Shot) Photo " + Storage.Count;
-            iCard.transform.SetParent(contentTransform);
-            iCard.Setup(post);
-            (iCard.transform as RectTransform).SetAsFirstSibling();
-
-        }
-
     }
 
     public FeedCard GetMostRecent(FeedCardType cardType, out int index)

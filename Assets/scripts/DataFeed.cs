@@ -3,9 +3,12 @@ using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-
 public class DataFeed<T>
 {
+
+    public delegate void FeedAppended(T item);
+
+    public event FeedAppended OnFeedAppended;
 
     string location;
 
@@ -24,12 +27,12 @@ public class DataFeed<T>
         }
     }
 
-    public void Append(T obj)
+    public void Append(T item)
     {
         //Serialize the object
         MemoryStream ms = new MemoryStream();
         BinaryFormatter bf = new BinaryFormatter();
-        bf.Serialize(ms, obj);
+        bf.Serialize(ms, item);
         ms.Flush();
         ms.Position = 0;
 
@@ -52,6 +55,11 @@ public class DataFeed<T>
             {
                 bw.Write(bytes);
             }
+        }
+
+        if (OnFeedAppended != null)
+        {
+            OnFeedAppended(item);
         }
     }
 
@@ -255,6 +263,14 @@ public class DataFeed<T>
         get
         {
             return Read(Count - 1, 1)[0];
+        }
+    }
+
+    public T First
+    {
+        get
+        {
+            return Read(0, 1)[0];
         }
     }
 
