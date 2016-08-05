@@ -135,7 +135,7 @@ public class Feed : MonoBehaviour {
                 if (post.cardType == FeedCardType.Post)
                 {
                     ImageCard iCard = Instantiate(imageCardPrefab);
-                    iCard.name = "(Archive) Photo " + (index + i + 1);
+                    iCard.name = "(Archive) Photo " + (Mathf.Max(index + i, 0) + 1);
                     iCard.transform.SetParent(contentTransform);
                     iCard.Setup(post);
                 } else
@@ -146,6 +146,7 @@ public class Feed : MonoBehaviour {
                     nCard.Setup(post);
                 }
             }
+            index -= newPosts.Count;
         }
         catch (System.IO.FileNotFoundException)
         {
@@ -173,4 +174,11 @@ public class Feed : MonoBehaviour {
         return last;
     }
 
+    public void ScrollEvent(Vector2 pos)
+    {
+        if (pos.y < 0)
+        {
+            LoadBatch();
+        }
+    }
 }

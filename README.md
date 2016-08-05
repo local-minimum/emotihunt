@@ -23,7 +23,7 @@ Get a rank.
 
 ## Issues
 
-* Feed doesn't scroll
+* :white_check_mark: Feed doesn't scroll
 * Feed doesn't load more at end of scroll
 * :white_check_mark: Cards don't get right size
 * :white_check_mark: On activating emojis need to clear image at once
