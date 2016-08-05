@@ -33,17 +33,17 @@ public class UISelectionMode : MonoBehaviour {
     [SerializeField]
     Feed feed;
 
-    long activeEmojiVersion;
+    long activeEmojiVersion = -1;
 
     void Awake()
     {
         selections = GetComponentsInChildren<UIEmojiSelected>();
         mobileUI = GetComponentInParent<MobileUI>();
-        activeEmojiVersion = Detector.emojiDB.Version;
     }
 
     void Start()
     {
+
         StartCoroutine(SetupSelectors());
 
         int idx;
@@ -64,6 +64,14 @@ public class UISelectionMode : MonoBehaviour {
     {
         mobileUI.OnModeChange -= HandleModeChange;
         detector.OnDetectorStatusChange -= HandleDetectorStatus;
+    }
+
+    void Update()
+    {
+        if (activeEmojiVersion < 0 && Detector.emojiDB != null)
+        {
+            activeEmojiVersion = Detector.emojiDB.Version;
+        }
     }
 
     private void HandleDetectorStatus(Detector screen, DetectorStatus status)

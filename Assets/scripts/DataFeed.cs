@@ -17,6 +17,11 @@ public class DataFeed<T>
     public DataFeed(string storageLocation)
     {
         location = storageLocation;
+
+        if (!File.Exists(location))
+        {
+            using (FileStream f = File.Open(location, FileMode.Create, FileAccess.Write));
+        }
     }
 
     public void Append(T obj)
