@@ -109,7 +109,7 @@ namespace ImageAnalysis.Textures
             ImageAnalysis.Convolve.Valid(ref edgeY, filt1stride, ref gaussY, filt2stride, gauss3Filter);
             yield return 0.6f;
 
-            ImageAnalysis.Convolve.TensorMatrix(ref gaussX, ref gaussY, ref A);
+            ImageAnalysis.Convolve.Tensor(ref gaussX, ref gaussY, ref A);
             yield return 0.8f;
 
             ImageAnalysis.Convolve.Response(ref A, kappa, ref response);

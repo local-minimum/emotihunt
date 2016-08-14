@@ -103,7 +103,7 @@ namespace ImageAnalysis
             }
         }
 
-        public static void TensorMatrix(ref double[,] Ix, ref double[,] Iy, ref double[,,,] A)
+        public static void Tensor(ref double[,] Ix, ref double[,] Iy, ref double[,,,] A)
         {
             for (int color = 0, colors = Mathf.Min(Ix.GetLength(1), Iy.GetLength(1), A.GetLength(1)); color < colors; color++)
             {
@@ -112,7 +112,7 @@ namespace ImageAnalysis
 
                     A[i, color, 0, 0] = System.Math.Pow(Ix[i, color], 2.0);
                     A[i, color, 1, 1] = System.Math.Pow(Iy[i, color], 2.0);
-                    A[i, color, 0, 1] = A[i, color, 1, 0] = Ix[i, color] * Iy[i, color];
+					A[i, color, 0, 1] = A[i, color, 1, 0] = Ix[i, color] * Iy[i, color];
 
                 }
             }
@@ -125,8 +125,8 @@ namespace ImageAnalysis
                 for (int i = 0, l = Mathf.Min(R.GetLength(0), A.GetLength(0)); i < l; i++)
                 {
                     R[i, color] = 
-                        A[i, color, 0, 0] * A[i, color, 1, 1] - A[i, color, 0, 1] * A[i, color, 1, 0] - 
-                        kappa * System.Math.Pow(A[i, color, 0, 0] + A[i, color, 1, 1], 2.0);
+						1 * (A[i, color, 0, 0] * A[i, color, 1, 1] - A[i, color, 0, 1] * A[i, color, 1, 0] ) - 
+                        1 * kappa * System.Math.Pow(A[i, color, 0, 0] + A[i, color, 1, 1], 2.0);
                 }
             }
         }
