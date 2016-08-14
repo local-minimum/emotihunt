@@ -91,7 +91,7 @@ namespace ImageAnalysis
             return target;
         }
 
-        public static void Subtract(ref double[,] a, ref double[,] b, ref double[,] target)
+		public static void Subtract(ref double[,] a, ref double[,] b, ref double[,] target)
         {
 
             for (int color = 0, colors = Mathf.Min(a.GetLength(1), b.GetLength(1), target.GetLength(1)); color < colors; color++)
@@ -102,6 +102,47 @@ namespace ImageAnalysis
                 }
             }
         }
+
+		public static double[,] Multiply(ref double[,] a, ref double[,] b)
+		{
+			double[,] target = new double[a.GetLength(0), a.GetLength(1)];
+
+			Multiply(ref a, ref b, ref target);
+			return target;
+		}
+
+		public static void Multiply(ref double[,] a, ref double[,] b, ref double[,] target)
+		{
+
+			for (int color = 0, colors = Mathf.Min(a.GetLength(1), b.GetLength(1), target.GetLength(1)); color < colors; color++)
+			{
+				for (int i = 0, l = target.GetLength(0); i < l; i++)
+				{
+					target[i, color] = a[i, color] * b[i, color];
+				}
+			}
+		}
+
+
+		public static double[,] Pow(ref double[,] a, ref double b)
+		{
+			double[,] target = new double[a.GetLength(0), a.GetLength(1)];
+
+			Pow(ref a, b, ref target);
+			return target;
+		}
+
+		public static void Pow(ref double[,] a, double b, ref double[,] target)
+		{
+
+			for (int color = 0, colors = Mathf.Min(a.GetLength(1), target.GetLength(1)); color < colors; color++)
+			{
+				for (int i = 0, l = target.GetLength(0); i < l; i++)
+				{
+					target [i, color] = System.Math.Pow (a [i, color], b);	
+				}	
+			}
+		}
 
         public static void Tensor(ref double[,] Ix, ref double[,] Iy, ref double[,,,] A)
         {
@@ -117,6 +158,17 @@ namespace ImageAnalysis
                 }
             }
         }
+
+		public static void Response(ref double[,] Sx2, ref double[,] Sy2, ref double[,] Sxy, double kappa, ref double[,] R)
+		{
+			for (int color = 0, colors = Mathf.Min (Sx2.GetLength (1), R.GetLength (1)); color < colors; color++) {
+				for (int i = 0, l = Mathf.Min (R.GetLength (0), Sx2.GetLength (0)); i < l; i++) {
+					R[i, color] = 
+						(Sx2[i, color] * Sy2[i, color] - Sxy[i, color] * Sxy[i, color] ) - 
+						kappa * System.Math.Pow(Sx2[i, color] + Sy2[i, color], 2.0);
+				}
+			}
+		}
 
         public static void Response(ref double[,,,] A, double kappa, ref double[,] R)
         {

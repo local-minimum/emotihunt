@@ -9,11 +9,15 @@ namespace ImageAnalysis.Textures
         Filter sobelY = Filter.Get<Filters.SobelY>();
         Filter gauss3Filter = Filter.Get<Filters.Gaussian9x9S3>();
 
-        double[,] gaussX;
-        double[,] gaussY;
+		double[,] Gx2;
+		double[,] Gy2;
+		double[,] Gxy;
+		double[,] Sx2;
+		double[,] Sy2;
+		double[,] Sxy;
+
         double[,] edgeX;
         double[,] edgeY;
-        double[,,,] A;
         double[,] response;
 
         int filt1stride;
@@ -82,17 +86,22 @@ namespace ImageAnalysis.Textures
             edgeX = new double[filt1size, channels];
             edgeY = new double[filt1size, channels];
 
+			Sx2 = new double[filt1size, channels];
+			Sy2 = new double[filt1size, channels]; 
+			Sxy = new double[filt1size, channels];
 
             filt2stride = filt1stride - gauss3Filter.Kernel.GetLength(1) + 1;
             filt2height = filt1height - gauss3Filter.Kernel.GetLength(0) + 1;
 
             int filt2size = filt2height * filt2stride;
-            gaussX = new double[filt2size, channels];
-            gaussY = new double[filt2size, channels];
 
-            A = new double[filt2size, channels, 2, 2];
+            Gx2 = new double[filt2size, channels];
+            Gy2 = new double[filt2size, channels];
+			Gxy = new double[filt2size, channels];
+
+            
             response = new double[filt2size, channels];
-        }
+        }	
 
         public override IEnumerable<float> Convolve(double[,] data, int stride)
         {
@@ -103,16 +112,25 @@ namespace ImageAnalysis.Textures
             ImageAnalysis.Convolve.Valid(ref data, stride, ref edgeY, filt1stride, sobelY);
             yield return 0.3f;
 
-            ImageAnalysis.Convolve.Valid(ref edgeX, filt1stride, ref gaussX, filt2stride, gauss3Filter);
+			ImageAnalysis.Convolve.Pow (ref edgeX, 2, ref Sx2);
+			yield return 0.32f;
+
+			ImageAnalysis.Convolve.Pow (ref edgeY, 2, ref Sy2);
+			yield return 0.34f;
+
+			ImageAnalysis.Convolve.Multiply(ref edgeX, ref edgeY, ref Sxy);
+			yield return 0.36f;
+
+            ImageAnalysis.Convolve.Valid(ref Sx2, filt1stride, ref Gx2, filt2stride, gauss3Filter);
             yield return 0.45f;
 
-            ImageAnalysis.Convolve.Valid(ref edgeY, filt1stride, ref gaussY, filt2stride, gauss3Filter);
-            yield return 0.6f;
+			ImageAnalysis.Convolve.Valid(ref Sy2, filt1stride, ref Gy2, filt2stride, gauss3Filter);
+            yield return 0.5f;
 
-            ImageAnalysis.Convolve.Tensor(ref gaussX, ref gaussY, ref A);
-            yield return 0.8f;
+			ImageAnalysis.Convolve.Valid(ref Sxy, filt1stride, ref Gxy, filt2stride, gauss3Filter);
+			yield return 0.65f;
 
-            ImageAnalysis.Convolve.Response(ref A, kappa, ref response);
+			ImageAnalysis.Convolve.Response(ref Gx2, ref Gy2, ref Gxy, kappa, ref response);
             yield return 0.9f;
 
             Math.ValueScale01(ref response);
