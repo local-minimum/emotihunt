@@ -164,7 +164,7 @@ namespace ImageAnalysis
 			for (int color = 0, colors = Mathf.Min (Sx2.GetLength (1), R.GetLength (1)); color < colors; color++) {
 				for (int i = 0, l = Mathf.Min (R.GetLength (0), Sx2.GetLength (0)); i < l; i++) {
 					R[i, color] = 
-						(Sx2[i, color] * Sy2[i, color] - Sxy[i, color] * Sxy[i, color] ) - 
+						-1 * (Sx2[i, color] * Sy2[i, color] - Sxy[i, color] * Sxy[i, color] ) +
 						kappa * System.Math.Pow(Sx2[i, color] + Sy2[i, color], 2.0);
 				}
 			}
